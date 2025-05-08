@@ -171,6 +171,34 @@ FUNC_DEF void Stage2()
             }
         }
 
+        {
+            // Hvcall 114
+
+            {
+                uint8_t searchData[] = {0x2F, 0x80, 0x00, 0x00, 0x41, 0x9E, 0x00, 0x28, 0x38, 0x60, 0x00, 0x00, 0x38, 0x80, 0x00, 0x00};
+                uint8_t replaceData[] = {0x60, 0x00, 0x00, 0x00, 0x48, 0x00, 0x00, 0x28, 0x38, 0x60, 0x00, 0x00, 0x38, 0x80, 0x00, 0x00};
+
+                puts("Patching hvcall 114 1...\n");
+
+                if (!SearchAndReplace((void *)0x0, (16 * 1024 * 1024), searchData, 16, replaceData, 16))
+                {
+                    puts("patch failed!\n");
+                }
+            }
+
+            {
+                uint8_t searchData[] = {0x00, 0x4B, 0xFF, 0xFB, 0xFD, 0x7C, 0x60, 0x1B};
+                uint8_t replaceData[] = {0x01, 0x4B, 0xFF, 0xFB, 0xFD, 0x7C, 0x60, 0x1B};
+
+                puts("Patching hvcall 114 2...\n");
+
+                if (!SearchAndReplace((void *)0x0, (16 * 1024 * 1024), searchData, 8, replaceData, 8))
+                {
+                    puts("patch failed!\n");
+                }
+            }
+        }
+
         puts("Booting lv1...\n");
 
         eieio();

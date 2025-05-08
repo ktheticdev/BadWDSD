@@ -11,6 +11,15 @@ FUNC_DEF void Stage1()
     puts(__TIME__);
     puts(")\n");
 
+    {
+        puts("Setting core clock...\n");
+
+        volatile uint64_t* p = (volatile uint64_t*)0x20000509880;
+        *p = 0;
+
+        eieio();
+    }
+
     sc_triple_beep();
 
     // Memtest();
