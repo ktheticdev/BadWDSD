@@ -33,48 +33,19 @@ uint64_t endswap64(uint64_t v)
     return __bswap_64(v);
 }
 
-struct Zelf_Header_s
+void lv2diff(const char *inFilePath1, const char *inFilePath2, const char *outFilePath)
 {
-public:
-    uint64_t magic;
+    printf("lv2diff()\n");
 
-    uint64_t original_size;
-    uint64_t compressed_size;
-};
-
-bool SearchAndReplace(void *in_data, uint64_t dataSize, const void *in_searchData, uint64_t searchDataSize, const void *in_replaceData, uint64_t replaceDataSize)
-{
-    uint8_t *data = (uint8_t *)in_data;
-
-    const uint8_t *searchData = (const uint8_t *)in_searchData;
-    const uint8_t *replaceData = (const uint8_t *)in_replaceData;
-
-    for (uint64_t i = 0; i < dataSize; ++i)
-    {
-        if (!memcmp(&data[i], searchData, searchDataSize))
-        {
-            memcpy(&data[i], replaceData, replaceDataSize);
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void lv0gen(const char *inFilePath, const char *outFilePath, const char *stage2jFilePath)
-{
-    printf("lv0gen()\n");
-
-    printf("inFilePath = %s\n", inFilePath);
+    printf("inFilePath1 = %s\n", inFilePath1);
+    printf("inFilePath2 = %s\n", inFilePath2);
     printf("outFilePath = %s\n", outFilePath);
 
-    printf("stage2jFilePath = %s\n", stage2jFilePath);
-
-    FILE *inFile = fopen(inFilePath, "rb");
+    FILE *inFile1 = fopen(inFilePath1, "rb");
+    FILE *inFile2 = fopen(inFilePath2, "rb");
     FILE *outFile = fopen(outFilePath, "wb");
-    FILE *stage2jFile = fopen(stage2jFilePath, "rb");
 
-    if (inFile == NULL || outFile == NULL || stage2jFile == NULL)
+    if (inFile1 == NULL || inFile2 == NULL || outFile == NULL)
     {
         printf("open file failed!\n");
 
@@ -82,12 +53,12 @@ void lv0gen(const char *inFilePath, const char *outFilePath, const char *stage2j
         return;
     }
 
-    size_t inFileSize = get_file_size(inFile);
-    printf("inFileSize = %lu\n", inFileSize);
+    size_t inFileSize1 = get_file_size(inFile1);
+    printf("inFileSize1 = %lu\n", inFileSize1);
 
-    uint8_t *inData = (uint8_t *)malloc(inFileSize);
+    uint8_t *inData1 = (uint8_t *)malloc(inFileSize1);
 
-    if (inData == NULL)
+    if (inData1 == NULL)
     {
         printf("malloc failed!\n");
 
@@ -95,36 +66,15 @@ void lv0gen(const char *inFilePath, const char *outFilePath, const char *stage2j
         return;
     }
 
-    fread(inData, 1, inFileSize, inFile);
-    fclose(inFile);
+    fread(inData1, 1, inFileSize1, inFile1);
+    fclose(inFile1);
 
-    size_t stage2jFileSize = get_file_size(stage2jFile);
-    printf("stage2jFileSize = %lu\n", stage2jFileSize);
+    size_t inFileSize2 = get_file_size(inFile2);
+    printf("inFileSize2 = %lu\n", inFileSize2);
 
-    if (stage2jFileSize > 32)
-    {
-        printf("bad stage2j file size!\n");
+    uint8_t *inData2 = (uint8_t *)malloc(inFileSize2);
 
-        abort();
-        return;
-    }
-
-    uint8_t *stage2jData = (uint8_t *)malloc(stage2jFileSize);
-
-    if (stage2jData == NULL)
-    {
-        printf("stage2jData failed!\n");
-
-        abort();
-        return;
-    }
-
-    fread(stage2jData, 1, stage2jFileSize, stage2jFile);
-    fclose(stage2jFile);
-
-    uint8_t *outData = (uint8_t *)malloc(inFileSize);
-
-    if (outData == NULL)
+    if (inData2 == NULL)
     {
         printf("malloc failed!\n");
 
@@ -132,28 +82,68 @@ void lv0gen(const char *inFilePath, const char *outFilePath, const char *stage2j
         return;
     }
 
-    memcpy(outData, inData, inFileSize);
+    fread(inData2, 1, inFileSize2, inFile2);
+    fclose(inFile2);
 
+    if (inFileSize1 != inFileSize2)
     {
-        uint8_t searchData[] = {0x38, 0x60, 0x01, 0x00, 0x7C, 0x69, 0x03, 0xA6, 0x4E, 0x80, 0x04, 0x20, 0x60, 0x00, 0x00, 0x00};
+        printf("file size must be equal!\n");
 
-        printf("Installing stage2j...\n");
+        abort();
+        return;
+    }
 
-        if (!SearchAndReplace(outData, inFileSize, searchData, 16, stage2jData, stage2jFileSize))
+    size_t sz = inFileSize1;
+    uint32_t diffCount = 0;
+
+    for (size_t i = 0x10000; i < sz; ++i)
+    {
+        if (inData1[i] != inData2[i])
+            ++diffCount;
+    }
+
+    printf("diffCount = %u\n", diffCount);
+
+    diffCount = endswap32(diffCount);
+    fwrite(&diffCount, 4, 1, outFile);
+    diffCount = endswap32(diffCount);
+
+    uint32_t diffCount2 = 0;
+
+    for (size_t i = 0x10000; i < sz; ++i)
+    {
+        if (inData1[i] != inData2[i])
         {
-            printf("install failed!\n");
+            uint32_t addr = (uint32_t)(i);
+            uint32_t val = (uint8_t)inData2[i];
 
-            abort();
-            return;
+            // shitty code
+
+            if (addr >= 0x10000)
+                addr -= 0x10000;
+            else
+                continue;
+
+            addr = endswap32(addr);
+            val = endswap32(val);
+
+            fwrite(&addr, 4, 1, outFile);
+            fwrite(&val, 4, 1, outFile);
+
+            ++diffCount2;
         }
     }
 
-    fwrite(outData, 1, inFileSize, outFile);
+    if (diffCount != diffCount2)
+    {
+        printf("diffCount must be equal!\n");
 
-    free(outData);
+        abort();
+        return;
+    }
 
-    free(stage2jData);
-    free(inData);
+    free(inData2);
+    free(inData1);
 
     fclose(outFile);
 }
@@ -239,9 +229,16 @@ struct ElfPhdr_s
 #include "../Aes/Aes.h"
 #include "../Aes/Aes.c"
 
-void DecryptLv0Self(void *inDest, const void *inSrc)
+#include "../tinf/tinf.h"
+
+#include "../tinf/adler32.c"
+#include "../tinf/crc32.c"
+#include "../tinf/tinflate.c"
+#include "../tinf/tinfzlib.c"
+
+void DecryptLv2Self(void *inDest, const void *inSrc)
 {
-    printf("DecryptLv0Self()\n");
+    printf("DecryptLv2Self()\n");
 
     uint8_t *dest = (uint8_t *)inDest;
     const uint8_t *src = (const uint8_t *)inSrc;
@@ -264,18 +261,18 @@ void DecryptLv0Self(void *inDest, const void *inSrc)
     printf("file_offset = 0x%lx\n", endswap64(sceHeader.file_offset));
     printf("file_size = 0x%lx\n", endswap64(sceHeader.file_size));
 
-    // erk=CA7A24EC38BDB45B 98CCD7D363EA2AF0 C326E65081E0630C B9AB2D215865878A
-    // riv=F9205F46F6021697 E670F13DFA726212
+    // erk=0CAF212B6FA53C0D A7E2C575ADF61DBE 68F34A33433B1B89 1ABF5C4251406A03
+    // riv=9B79374722AD888E B6A35A2DF25A8B3E
 
     uint64_t meta_key[4];
-    meta_key[0] = endswap64(0xCA7A24EC38BDB45B);
-    meta_key[1] = endswap64(0x98CCD7D363EA2AF0);
-    meta_key[2] = endswap64(0xC326E65081E0630C);
-    meta_key[3] = endswap64(0xB9AB2D215865878A);
+    meta_key[0] = endswap64(0x0CAF212B6FA53C0D);
+    meta_key[1] = endswap64(0xA7E2C575ADF61DBE);
+    meta_key[2] = endswap64(0x68F34A33433B1B89);
+    meta_key[3] = endswap64(0x1ABF5C4251406A03);
 
     uint64_t meta_iv[2];
-    meta_iv[0] = endswap64(0xF9205F46F6021697);
-    meta_iv[1] = endswap64(0xE670F13DFA726212);
+    meta_iv[0] = endswap64(0x9B79374722AD888E);
+    meta_iv[1] = endswap64(0xB6A35A2DF25A8B3E);
 
     WORD meta_aes_key[60];
     aes_key_setup((const uint8_t *)meta_key, meta_aes_key, 256);
@@ -311,7 +308,7 @@ void DecryptLv0Self(void *inDest, const void *inSrc)
     printf("metasSize = %lu\n", metasSize);
 
     uint8_t metasBuf[16384];
-    
+
     aes_decrypt_ctr(
 
         &src[curSrcOffset],
@@ -323,55 +320,57 @@ void DecryptLv0Self(void *inDest, const void *inSrc)
         128,
 
         (const uint8_t *)metaInfo.iv
-    
+
     );
 
-    SceMetaHeader_s* metaHeader = (SceMetaHeader_s*)&metasBuf[0];
+    SceMetaHeader_s *metaHeader = (SceMetaHeader_s *)&metasBuf[0];
 
     printf("metaHeader:\n");
     printf("section_entry_num = %u\n", endswap32(metaHeader->section_entry_num));
     printf("key_entry_num = %u\n", endswap32(metaHeader->key_entry_num));
 
-    SceMetaSectionHeader_s* metaSectionHeaders = (SceMetaSectionHeader_s*)&metasBuf[sizeof(struct SceMetaHeader_s)];
+    SceMetaSectionHeader_s *metaSectionHeaders = (SceMetaSectionHeader_s *)&metasBuf[sizeof(struct SceMetaHeader_s)];
 
     for (uint32_t i = 0; i < endswap32(metaHeader->section_entry_num); ++i)
     {
         SceMetaSectionHeader_s *h = &metaSectionHeaders[i];
-    
+
         printf("section_headers[%u]:\n", i);
-        printf("segment_id = %u, segment_offset = 0x%lx, segment_size = 0x%lx, enc_algorithm = %u, key_idx = %u, iv_idx = %u\n", 
-            endswap32(h->segment_id), endswap64(h->segment_offset), endswap64(h->segment_size), endswap32(h->enc_algorithm), endswap32(h->key_idx), endswap32(h->iv_idx));
+        printf("segment_id = %u, segment_offset = 0x%lx, segment_size = 0x%lx, enc_algorithm = %u, key_idx = %u, iv_idx = %u\n",
+               endswap32(h->segment_id), endswap64(h->segment_offset), endswap64(h->segment_size), endswap32(h->enc_algorithm), endswap32(h->key_idx), endswap32(h->iv_idx));
     }
 
-    SceMetaKey_s* metaKeys = (SceMetaKey_s*)&metasBuf[sizeof(struct SceMetaHeader_s) + (endswap32(metaHeader->section_entry_num) * sizeof(struct SceMetaSectionHeader_s))];
+    SceMetaKey_s *metaKeys = (SceMetaKey_s *)&metasBuf[sizeof(struct SceMetaHeader_s) + (endswap32(metaHeader->section_entry_num) * sizeof(struct SceMetaSectionHeader_s))];
 
     for (uint32_t i = 0; i < endswap32(metaHeader->key_entry_num); ++i)
     {
         SceMetaKey_s *k = &metaKeys[i];
-    
+
         printf("keys[%u]: ", i);
 
         printf("key[0] = 0x%lx", endswap64(k->key[0]));
         printf(", key[1] = 0x%lx\n", endswap64(k->key[1]));
     }
 
-    ElfHeader_s* elfHeader = (ElfHeader_s*)&src[0x90];
+    ElfHeader_s *elfHeader = (ElfHeader_s *)&src[0x90];
 
     memcpy(dest, elfHeader, sizeof(ElfHeader_s));
     memcpy(dest + endswap64(elfHeader->e_phoff), &src[0x90 + endswap64(elfHeader->e_phoff)], endswap16(elfHeader->e_phentsize) * endswap16(elfHeader->e_phnum));
 
-    ElfPhdr_s* elfPhdrs = (ElfPhdr_s*)(dest + endswap64(elfHeader->e_phoff));
+    ElfPhdr_s *elfPhdrs = (ElfPhdr_s *)(dest + endswap64(elfHeader->e_phoff));
+
+    uint8_t *decryptBuf = (uint8_t *)malloc(16 * 1024 * 1024);
 
     for (uint16_t i = 0; i < endswap16(elfHeader->e_phnum); ++i)
     {
-        ElfPhdr_s* phdr = &elfPhdrs[i];
+        ElfPhdr_s *phdr = &elfPhdrs[i];
 
         printf("decrypting phdr %u...\n", (uint32_t)i);
 
         SceMetaSectionHeader_s *h = &metaSectionHeaders[i];
 
-        SceMetaKey_s* key = &metaKeys[endswap32(h->key_idx)];
-        SceMetaKey_s* iv = &metaKeys[endswap32(h->iv_idx)];
+        SceMetaKey_s *key = &metaKeys[endswap32(h->key_idx)];
+        SceMetaKey_s *iv = &metaKeys[endswap32(h->iv_idx)];
 
         WORD aes_key[60];
         aes_key_setup((const uint8_t *)key->key, aes_key, 128);
@@ -380,21 +379,40 @@ void DecryptLv0Self(void *inDest, const void *inSrc)
 
             &src[endswap64(h->segment_offset)],
             endswap64(h->segment_size),
-    
-            dest + endswap64(phdr->p_offset),
-    
+
+            decryptBuf,
+
             aes_key,
             128,
-    
+
             (const uint8_t *)iv->key
-        
+
         );
+
+        printf("decompressing...\n");
+
+        uint32_t sz = endswap64(phdr->p_filesz);
+
+        int32_t res = tinf_zlib_uncompress(
+            dest + endswap64(phdr->p_offset), &sz, 
+            decryptBuf, (uint32_t)endswap64(h->segment_size)
+        );
+
+        if (res != TINF_OK || sz != endswap64(phdr->p_filesz))
+        {
+            printf("Decompress failed!, sz = %u, p_filesz = %lu\n", sz, endswap64(phdr->p_filesz));
+            
+            abort();
+            return;
+        }
     }
+
+    free(decryptBuf);
 }
 
-void lv0decrypt(const char *inFilePath, const char *outFilePath)
+void lv2decrypt(const char *inFilePath, const char *outFilePath)
 {
-    printf("lv0decrypt()\n");
+    printf("lv2decrypt()\n");
 
     printf("inFilePath = %s\n", inFilePath);
     printf("outFilePath = %s\n", outFilePath);
@@ -426,7 +444,7 @@ void lv0decrypt(const char *inFilePath, const char *outFilePath)
     fread(inData, 1, inFileSize, inFile);
     fclose(inFile);
 
-    size_t outFileSize = (inFileSize * 2);
+    size_t outFileSize = (inFileSize * 8);
     uint8_t *outData = (uint8_t *)malloc(outFileSize);
 
     if (outData == NULL)
@@ -437,7 +455,7 @@ void lv0decrypt(const char *inFilePath, const char *outFilePath)
         return;
     }
 
-    DecryptLv0Self(outData, inData);
+    DecryptLv2Self(outData, inData);
 
     fwrite(outData, 1, outFileSize, outFile);
     fclose(outFile);
@@ -448,14 +466,14 @@ void lv0decrypt(const char *inFilePath, const char *outFilePath)
 
 int main(int argc, char **argv)
 {
-    if (argc == 5 && !strcmp(argv[1], "lv0gen"))
-        lv0gen(argv[2], argv[3], argv[4]);
-    else if (argc == 4 && !strcmp(argv[1], "lv0decrypt"))
-        lv0decrypt(argv[2], argv[3]);
+    if (argc == 5 && !strcmp(argv[1], "lv2diff"))
+        lv2diff(argv[2], argv[3], argv[4]);
+    else if (argc == 4 && !strcmp(argv[1], "lv2decrypt"))
+        lv2decrypt(argv[2], argv[3]);
     else
     {
-        printf("lv0gen <inFile> <outFile> <stage2j>\n");
-        printf("lv0decrypt <inFile> <outFile>\n");
+        printf("lv2diff <inFile1> <inFile2> <outFile>\n");
+        printf("lv2decrypt <inFile> <outFile>\n");
     }
 
     return 0;
