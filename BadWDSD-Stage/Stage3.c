@@ -468,7 +468,8 @@ FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
                 uint64_t lv2DiffFileAddress;
                 uint64_t lv2DiffFileSize;
 
-                if (CoreOS_FindFileEntry(coreOSStartAddress, "lv2_kernel.diff", &lv2DiffFileAddress, &lv2DiffFileSize))
+                //if (CoreOS_FindFileEntry(coreOSStartAddress, "lv2_kernel.diff", &lv2DiffFileAddress, &lv2DiffFileSize))
+                if (0)
                 {
                     puts("lv2DiffFileAddress = ");
                     print_hex(lv2DiffFileAddress);
@@ -513,6 +514,9 @@ FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
                 else
                     puts("File not found!\n");
             }
+
+            // fail
+            *(uint64_t*)(foundAddr + 0x150) = 0x1;
         }
     }
 

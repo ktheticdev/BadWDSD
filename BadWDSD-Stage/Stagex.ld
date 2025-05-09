@@ -27,4 +27,6 @@ SECTIONS
     code : { *(code) }
 
     .text : { *(.text) }
+
+    .opd : { *(.opd) }
 }

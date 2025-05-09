@@ -181,9 +181,7 @@ FUNC_DEF void Stage2()
                 puts("Patching hvcall 114 1...\n");
 
                 if (!SearchAndReplace((void *)0x0, (16 * 1024 * 1024), searchData, 16, replaceData, 16))
-                {
                     puts("patch failed!\n");
-                }
             }
 
             {
@@ -193,10 +191,18 @@ FUNC_DEF void Stage2()
                 puts("Patching hvcall 114 2...\n");
 
                 if (!SearchAndReplace((void *)0x0, (16 * 1024 * 1024), searchData, 8, replaceData, 8))
-                {
                     puts("patch failed!\n");
-                }
             }
+        }
+
+        {
+            puts("Patching FSM...\n");
+
+            uint8_t searchData[] = {0x80, 0x01, 0x00, 0x74, 0x7F, 0xC3, 0xF3, 0x78, 0xE8, 0xA2, 0x84, 0xE8, 0x38, 0x80, 0x00, 0x01};
+            uint8_t replaceData[] = {0x38, 0x00, 0x00, 0xFF, 0x7F, 0xC3, 0xF3, 0x78, 0xE8, 0xA2, 0x84, 0xE8, 0x38, 0x80, 0x00, 0x01};
+
+            if (!SearchAndReplace((void *)0x0, (16 * 1024 * 1024), searchData, 16, replaceData, 16))
+                puts("Patch failed!\n");
         }
 
         puts("Booting lv1...\n");

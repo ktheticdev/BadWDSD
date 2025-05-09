@@ -1821,9 +1821,6 @@ struct SceMetaKey_s
 
 #include "Aes/Aes.c"
 
-#pragma GCC push_options
-#pragma GCC optimize("O0")
-
 FUNC_DEF void DecryptLv0Self(void *inDest, const void *inSrc)
 {
     puts("DecryptLv0Self()\n");
@@ -2058,8 +2055,6 @@ FUNC_DEF void DecryptLv0Self(void *inDest, const void *inSrc)
     puts("DecryptLv0Self() done.\n");
 }
 
-#pragma GCC pop_options
-
 #include "tinf/tinf.h"
 
 #include "tinf/adler32.c"
@@ -2142,3 +2137,15 @@ FUNC_DEF void ZelfDecompress(uint64_t zelfFileAddress, void* destAddress, uint64
 #include "Stage1.c"
 #include "Stage2.c"
 #include "Stage3.c"
+
+#pragma GCC push_options
+#pragma GCC optimize("O0")
+
+void stage_link_entry()
+{
+    asm volatile("bl stage1_entry");
+    asm volatile("bl stage2_entry");
+    asm volatile("bl stage3_entry");
+}
+
+#pragma GCC pop_options
