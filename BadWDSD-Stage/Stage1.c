@@ -156,8 +156,8 @@ FUNC_DEF void Stage1()
 __attribute__((section("main1"))) void stage1_main()
 {
     // zeroing ram
-    memset((void*)0x0, 0, (256 * 1024 * 1024));
-    eieio();
+    //memset((void*)0x0, 0, (256 * 1024 * 1024));
+    //eieio();
 
     sc_puts_init();
 
@@ -172,6 +172,11 @@ __attribute__((noreturn, section("entry1"))) void stage1_entry()
     asm volatile("bl 4");
     asm volatile("mflr %0" : "=r"(stage_entry_ra)::);
     stage_entry_ra -= 4;
+
+    // disable interrupts
+    asm volatile("li 0, 2");
+    asm volatile("mtmsrd 0, 1");
+    eieio();
 
     // set is_lv1 to 0
     is_lv1 = 0;

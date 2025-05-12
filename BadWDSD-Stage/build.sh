@@ -10,7 +10,7 @@ $CC $FLAGS -T Stage0.ld Stage0.S -o Stage0.bin -Wl,--oformat=binary || exit 1
 
 export STAGEX_FLAGS="-estage_link_entry -ffunction-sections -fdata-sections -Wl,--gc-sections"
 
-$CC $FLAGS $STAGEX_FLAGS -T Stagex.ld Stagex.c tinyAES/aes.c Aes/Aes.c -o Stagex.elf || exit 1
+$CC $FLAGS $STAGEX_FLAGS -T Stagex.ld Stagex.c -o Stagex.elf || exit 1
 $OBJCOPY -O binary Stagex.elf Stagex.bin || exit 1
 
 $CC $FLAGS -T Stage2j.ld Stage2j.S -o Stage2j.elf || exit 1

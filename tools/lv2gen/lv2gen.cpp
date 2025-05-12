@@ -464,16 +464,78 @@ void lv2decrypt(const char *inFilePath, const char *outFilePath)
     free(inData);
 }
 
+#include "hmac/sha1.h"
+#include "hmac/sha1.c"
+#include "hmac/hmac.c"
+
+void lv2hash(const char* inFilePath)
+{
+    printf("lv2hash()\n");
+
+    printf("inFilePath = %s\n", inFilePath);
+
+    FILE *inFile = fopen(inFilePath, "rb");
+
+    if (inFile == NULL)
+    {
+        printf("open file failed!\n");
+
+        abort();
+        return;
+    }
+
+    size_t inFileSize = get_file_size(inFile);
+    printf("inFileSize = %lu\n", inFileSize);
+
+    uint8_t *inData = (uint8_t *)malloc(inFileSize);
+
+    if (inData == NULL)
+    {
+        printf("malloc failed!\n");
+
+        abort();
+        return;
+    }
+
+    fread(inData, 1, inFileSize, inFile);
+    fclose(inFile);
+
+    //void hmac_sha1(const uint8_t *text, size_t text_len, const uint8_t *key, size_t key_len, uint8_t* digest)
+    
+    uint8_t key[] = {0xA0, 0x9B, 0x58, 0xA6, 0x12, 0xB9, 0xF4, 0xC1, 0x34, 0x51, 0xA1, 
+        0xB8, 0x1C, 0x94, 0xAB, 0xF8, 0x42, 0x3E, 0xD7, 0x6A, 0x96, 0x27, 0x1A, 0x72, 
+        0x23, 0x94, 0xF0, 0xDD, 0x04, 0x2B, 0xA2, 0xCA, 0xA4, 0x1A, 0x56, 0x71, 0x77, 
+        0xA8, 0xB5, 0x00, 0x23, 0x5C, 0x74, 0x49, 0x58, 0x42, 0xBF, 0x20, 0x07, 0xFA, 
+        0xF2, 0x74, 0xCC, 0x81, 0x09, 0x1A, 0xD5, 0x7A, 0xF7, 0x26, 0x4A, 0x60, 0xE2, 0xCE};
+
+    uint8_t digest[24];
+    uint64_t* digest64 = (uint64_t*)digest;
+    digest64[0] = 0;
+    digest64[1] = 0;
+    digest64[2] = 0;
+
+    hmac_sha1(inData, inFileSize, key, 64, digest);
+
+    printf("0x%016lx\n", endswap64(digest64[0]));
+    printf("0x%016lx\n", endswap64(digest64[1]));
+    printf("0x%016lx\n", endswap64(digest64[2]));
+
+    free(inData);
+}
+
 int main(int argc, char **argv)
 {
     if (argc == 5 && !strcmp(argv[1], "lv2diff"))
         lv2diff(argv[2], argv[3], argv[4]);
     else if (argc == 4 && !strcmp(argv[1], "lv2decrypt"))
         lv2decrypt(argv[2], argv[3]);
+    else if (argc == 3 && !strcmp(argv[1], "lv2hash"))
+        lv2hash(argv[2]);
     else
     {
         printf("lv2diff <inFile1> <inFile2> <outFile>\n");
         printf("lv2decrypt <inFile> <outFile>\n");
+        printf("lv2hash <inFile>\n");
     }
 
     return 0;

@@ -1878,8 +1878,8 @@ struct SceMetaKey_s
     uint64_t key[2];
 };
 
-#include "tinyAES/aes.h"
-#include "Aes/Aes.h"
+// can't compile as seperate files because of global registers
+#include "Aes/Aes.c"
 
 FUNC_DEF void DecryptLv0Self(void *inDest, const void *inSrc)
 {
@@ -1920,6 +1920,8 @@ FUNC_DEF void DecryptLv0Self(void *inDest, const void *inSrc)
     // erk=CA7A24EC38BDB45B 98CCD7D363EA2AF0 C326E65081E0630C B9AB2D215865878A
     // riv=F9205F46F6021697 E670F13DFA726212
 
+    puts("1\n");
+
     uint64_t meta_key[4];
     meta_key[0] = (0xCA7A24EC38BDB45B);
     meta_key[1] = (0x98CCD7D363EA2AF0);
@@ -1930,8 +1932,12 @@ FUNC_DEF void DecryptLv0Self(void *inDest, const void *inSrc)
     meta_iv[0] = (0xF9205F46F6021697);
     meta_iv[1] = (0xE670F13DFA726212);
 
+    puts("2\n");
+
     WORD meta_aes_key[60];
     aes_key_setup((const uint8_t *)meta_key, meta_aes_key, 256);
+
+    puts("3\n");
 
     curSrcOffset = 0x200;
 
@@ -1947,6 +1953,8 @@ FUNC_DEF void DecryptLv0Self(void *inDest, const void *inSrc)
         256,
 
         (const uint8_t *)meta_iv);
+
+    puts("4\n");
 
     curSrcOffset += sizeof(struct SceMetaInfo_s);
 
@@ -2094,7 +2102,9 @@ FUNC_DEF void DecryptLv0Self(void *inDest, const void *inSrc)
 
         puts("\n");
 
-#if 1
+#if 0
+
+        // tinyAES
 
         struct AES_ctx aes_key_ctx;
         AES_init_ctx_iv(&aes_key_ctx, (const uint8_t *)key->key, (const uint8_t *)iv->key);

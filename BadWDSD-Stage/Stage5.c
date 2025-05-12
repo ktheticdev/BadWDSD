@@ -1,6 +1,26 @@
 // note: log should be disabled in normal use
 // STAGE5_LOG_ENABLED
 
+FUNC_DEF uint8_t FindLv2(uint64_t *outFoundAddr)
+{
+    uint8_t searchData[] = {0x7C, 0x71, 0x43, 0xA6, 0x7C, 0x92, 0x43, 0xA6, 0x7C, 0xB3, 0x43, 0xA6, 0x7C, 0x7A, 0x02, 0xA6, 0x7C, 0x9B, 0x02,
+                            0xA6, 0x7C, 0xA0, 0x00, 0xA6, 0x60, 0xA5, 0x00, 0x30, 0x7C, 0xBB, 0x03, 0xA6, 0x3C, 0xA0, 0x80, 0x00, 0x60, 0xA5,
+                            0x00, 0x00, 0x78, 0xA5, 0x07, 0xC6, 0x64, 0xA5, 0x00, 0x00, 0x60, 0xA5, 0x08, 0x3C, 0x7C, 0xBA, 0x03, 0xA6, 0x4C, 0x00, 0x00, 0x24};
+
+    for (uint64_t addr = 0x0; addr < (250 * 1024 * 1024); addr += 0x800)
+    {
+        if (!memcmp((const void *)addr, searchData, sizeof(searchData)))
+        {
+            if (outFoundAddr != NULL)
+                *outFoundAddr = (addr - 0x800);
+
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 FUNC_DEF uint64_t SPU_CalcMMIOAddress(uint64_t spu_id, uint64_t offset)
 {
     return 0x20000000000 + (0x80000 * spu_id) + offset;
@@ -21,64 +41,89 @@ FUNC_DEF uint64_t SPU_CalcMMIOAddress_P2(uint64_t spu_id, uint64_t offset)
     return SPU_CalcMMIOAddress(spu_id, offset) + 0x60000;
 }
 
+FUNC_DEF uint64_t SPU_CalcMMIOAddress_P1(uint64_t spu_id, uint64_t offset)
+{
+    return 0x20000400000 + (0x2000 * spu_id) + offset;
+}
+
 FUNC_DEF uint64_t SPU_LS_Read64(uint64_t spu_id, uint64_t offset)
 {
-    return *((uint64_t *)SPU_CalcMMIOAddress_LS(spu_id, offset));
+    return *((volatile uint64_t *)SPU_CalcMMIOAddress_LS(spu_id, offset));
 }
 
 FUNC_DEF void SPU_LS_Write64(uint64_t spu_id, uint64_t offset, uint64_t value)
 {
-    *((uint64_t *)SPU_CalcMMIOAddress_LS(spu_id, offset)) = value;
+    *((volatile uint64_t *)SPU_CalcMMIOAddress_LS(spu_id, offset)) = value;
 }
 
 FUNC_DEF uint32_t SPU_LS_Read32(uint64_t spu_id, uint64_t offset)
 {
-    return *((uint32_t *)SPU_CalcMMIOAddress_LS(spu_id, offset));
+    return *((volatile uint32_t *)SPU_CalcMMIOAddress_LS(spu_id, offset));
 }
 
 FUNC_DEF void SPU_LS_Write32(uint64_t spu_id, uint64_t offset, uint32_t value)
 {
-    *((uint32_t *)SPU_CalcMMIOAddress_LS(spu_id, offset)) = value;
+    *((volatile uint32_t *)SPU_CalcMMIOAddress_LS(spu_id, offset)) = value;
 }
 
 FUNC_DEF uint64_t SPU_PS_Read64(uint64_t spu_id, uint64_t offset)
 {
-    return *((uint64_t *)SPU_CalcMMIOAddress_PS(spu_id, offset));
+    return *((volatile uint64_t *)SPU_CalcMMIOAddress_PS(spu_id, offset));
 }
 
 FUNC_DEF void SPU_PS_Write64(uint64_t spu_id, uint64_t offset, uint64_t value)
 {
-    *((uint64_t *)SPU_CalcMMIOAddress_PS(spu_id, offset)) = value;
+    *((volatile uint64_t *)SPU_CalcMMIOAddress_PS(spu_id, offset)) = value;
 }
 
 FUNC_DEF uint32_t SPU_PS_Read32(uint64_t spu_id, uint64_t offset)
 {
-    return *((uint32_t *)SPU_CalcMMIOAddress_PS(spu_id, offset));
+    return *((volatile uint32_t *)SPU_CalcMMIOAddress_PS(spu_id, offset));
 }
 
 FUNC_DEF void SPU_PS_Write32(uint64_t spu_id, uint64_t offset, uint32_t value)
 {
-    *((uint32_t *)SPU_CalcMMIOAddress_PS(spu_id, offset)) = value;
+    *((volatile uint32_t *)SPU_CalcMMIOAddress_PS(spu_id, offset)) = value;
 }
 
 FUNC_DEF uint64_t SPU_P2_Read64(uint64_t spu_id, uint64_t offset)
 {
-    return *((uint64_t *)SPU_CalcMMIOAddress_P2(spu_id, offset));
+    return *((volatile uint64_t *)SPU_CalcMMIOAddress_P2(spu_id, offset));
 }
 
 FUNC_DEF void SPU_P2_Write64(uint64_t spu_id, uint64_t offset, uint64_t value)
 {
-    *((uint64_t *)SPU_CalcMMIOAddress_P2(spu_id, offset)) = value;
+    *((volatile uint64_t *)SPU_CalcMMIOAddress_P2(spu_id, offset)) = value;
 }
 
 FUNC_DEF uint32_t SPU_P2_Read32(uint64_t spu_id, uint64_t offset)
 {
-    return *((uint32_t *)SPU_CalcMMIOAddress_P2(spu_id, offset));
+    return *((volatile uint32_t *)SPU_CalcMMIOAddress_P2(spu_id, offset));
 }
 
 FUNC_DEF void SPU_P2_Write32(uint64_t spu_id, uint64_t offset, uint32_t value)
 {
-    *((uint32_t *)SPU_CalcMMIOAddress_P2(spu_id, offset)) = value;
+    *((volatile uint32_t *)SPU_CalcMMIOAddress_P2(spu_id, offset)) = value;
+}
+
+FUNC_DEF uint64_t SPU_P1_Read64(uint64_t spu_id, uint64_t offset)
+{
+    return *((volatile uint64_t *)SPU_CalcMMIOAddress_P1(spu_id, offset));
+}
+
+FUNC_DEF void SPU_P1_Write64(uint64_t spu_id, uint64_t offset, uint64_t value)
+{
+    *((volatile uint64_t *)SPU_CalcMMIOAddress_P1(spu_id, offset)) = value;
+}
+
+FUNC_DEF uint32_t SPU_P1_Read32(uint64_t spu_id, uint64_t offset)
+{
+    return *((volatile uint32_t *)SPU_CalcMMIOAddress_P1(spu_id, offset));
+}
+
+FUNC_DEF void SPU_P1_Write32(uint64_t spu_id, uint64_t offset, uint32_t value)
+{
+    *((volatile uint32_t *)SPU_CalcMMIOAddress_P1(spu_id, offset)) = value;
 }
 
 FUNC_DEF void LoadElfSpu(uint64_t elfFileAddress, uint64_t spu_id)
@@ -149,22 +194,77 @@ FUNC_DEF void LoadElfSpu(uint64_t elfFileAddress, uint64_t spu_id)
     }
 
     // SPU_NPC[0:29] = entry (LS)
-    SPU_PS_Write32(spu_id, 0x04034, (elfHdr->e_entry << 0));
+    SPU_PS_Write32(spu_id, 0x04034, elfHdr->e_entry);
 
     eieio();
 
     puts("LoadElfSpu() done.\n");
 }
 
-FUNC_DEF void Stage5()
-{
-    puts("BadWDSD Stage5 by Kafuu(aomsin2526)\n");
+#pragma GCC push_options
+#pragma GCC optimize("O0")
 
-    puts("(Build Date: ");
-    puts(__DATE__);
-    puts(" ");
-    puts(__TIME__);
-    puts(")\n");
+FUNC_DEF void Stage5_2()
+{
+    uint64_t stage5_lv2AreaAddr;
+    uint64_t stage5_lv2AreaSize = (1 * 1024 * 1024);
+
+    if (!FindLv2(&stage5_lv2AreaAddr))
+    {
+        puts("lv2 area not found!\n");
+        return;
+    }
+
+    //*((uint64_t*)stage5_lv2AreaAddr + 0x150) = 0x6969;
+    *((uint64_t*)0x12ED560) = 0x0;
+    eieio();
+
+    uint64_t *stage5_lv2HashCachePtr = (uint64_t *)0x218;
+    uint64_t stage5_curLv2Hash = 0;
+
+    for (uint64_t offset = 0; offset < stage5_lv2AreaSize; offset += 8)
+        stage5_curLv2Hash += *((uint64_t *)(stage5_lv2AreaAddr + offset));
+
+    if (*stage5_lv2HashCachePtr == stage5_curLv2Hash)
+        return;
+
+    *stage5_lv2HashCachePtr = stage5_curLv2Hash;
+
+    puts("stage5_lv2AreaAddr = ");
+    print_hex(stage5_lv2AreaAddr);
+
+    puts(", stage5_lv2AreaSize = ");
+    print_hex(stage5_lv2AreaSize);
+
+    puts(", stage5_curLv2Hash = ");
+    print_hex(stage5_curLv2Hash);
+
+    puts("\n");
+
+    uint64_t *lv1_lv2AreaAddrPtr = (uint64_t *)0x370F20; // 0x8000000000000000
+    uint64_t *lv1_lv2AreaSizePtr = (uint64_t *)0x370F28; // 0x352230
+
+    uint64_t *lv1_lv2AreaHashPtr = (uint64_t *)0x370F30;
+
+    puts("before_lv1_lv2AreaAddr = ");
+    print_hex(*lv1_lv2AreaAddrPtr);
+
+    puts(", before_lv1_lv2AreaSize = ");
+    print_hex(*lv1_lv2AreaSizePtr);
+
+    puts("\n");
+
+    puts("before_lv1_lv2AreaHash[0] = ");
+    print_hex(lv1_lv2AreaHashPtr[0]);
+    puts("\n");
+
+    puts("before_lv1_lv2AreaHash[1] = ");
+    print_hex(lv1_lv2AreaHashPtr[1]);
+    puts("\n");
+
+    puts("before_lv1_lv2AreaHash[2] = ");
+    print_hex(lv1_lv2AreaHashPtr[2]);
+    puts("\n");
 
     {
         uint8_t os_bank_indicator = sc_read_os_bank_indicator();
@@ -180,148 +280,199 @@ FUNC_DEF void Stage5()
 
         uint64_t coreOSStartAddress = (os_bank_indicator == 0xff) ? 0x2401F0C0000 : 0x2401F7C0000;
 
-        puts("Searching for appldr.elf...\n");
+        puts("Searching for lv2hashgen.elf...\n");
 
-        uint64_t appldrFileAddress;
-        uint64_t appldrFileSize;
+        uint64_t lv2HashGenFileAddress;
+        uint64_t lv2HashGenFileSize;
 
-        if (CoreOS_FindFileEntry(coreOSStartAddress, "appldr.elf", &appldrFileAddress, &appldrFileSize))
+        if (CoreOS_FindFileEntry(coreOSStartAddress, "lv2hashgen.elf", &lv2HashGenFileAddress, &lv2HashGenFileSize))
         {
-            puts("appldrFileAddress = ");
-            print_hex(appldrFileAddress);
+            puts("lv2HashGenFileAddress = ");
+            print_hex(lv2HashGenFileAddress);
 
-            puts(", appldrFileSize = ");
-            print_decimal(appldrFileSize);
+            puts(", lv2HashGenFileSize = ");
+            print_decimal(lv2HashGenFileSize);
 
             puts("\n");
 
-            // Sc_Rx: Scanning for spu id 0...
-            // Sc_Rx: status = 0x2, runcntl = 0x2, privcntl = 0x0...
-            // Sc_Rx: Scanning for spu id 1...
-            // Sc_Rx: status = 0x2, runcntl = 0x2, privcntl = 0x0...
-            // Sc_Rx: Scanning for spu id 2...
-            // Sc_Rx: status = 0x2, runcntl = 0x2, privcntl = 0x0...
-            // Sc_Rx: Scanning for spu id 4...
-            // Sc_Rx: status = 0x81, runcntl = 0x1, privcntl = 0x4...
-            // Sc_Rx: Scanning for spu id 5...
-            // Sc_Rx: status = 0x2, runcntl = 0x2, privcntl = 0x0...
-            // Sc_Rx: Scanning for spu id 6...
-            // Sc_Rx: status = 0x1100002, runcntl = 0x1, privcntl = 0x0...
-            // Sc_Rx: Scanning for spu id 7...
-            // Sc_Rx: status = 0x2, runcntl = 0x2, privcntl = 0x0...
+            puts("Searching for free spu...\n");
 
-            intr_disable();
+            uint8_t found = 0;
 
             for (uint64_t spu_id = 0; spu_id < 8; ++spu_id)
             {
                 if (spu_id == 3)
                     continue;
 
-                puts("Scanning for isolated spu id ");
-                print_decimal(spu_id);
-                puts("...\n");
-
                 uint32_t status = SPU_PS_Read32(spu_id, 0x04024);
-                puts("status = ");
-                print_hex(status);
-
-                uint32_t runcntl = SPU_PS_Read32(spu_id, 0x0401C);
-                puts(", runcntl = ");
-                print_hex(runcntl);
-
-                uint64_t privcntl = SPU_P2_Read64(spu_id, 0x04040);
-                puts(", privcntl = ");
-                print_hex(privcntl);
-
-                puts("...\n");
 
                 static const uint32_t SPU_STATUS_RUN_MASK = (1 << 0);
                 static const uint32_t SPU_STATUS_ISOLATED_MASK = (1 << 7);
-                static const uint32_t SPU_STATUS_ISOLATED_LOAD_MASK = (1 << 9);
 
-                while ((status & SPU_STATUS_ISOLATED_LOAD_MASK) != 0)
+                if ((status & SPU_STATUS_ISOLATED_MASK) != 0)
+                    continue;
+
+                if ((status & SPU_STATUS_RUN_MASK) != 0)
+                    continue;
+
+                found = 1;
+
+                puts("Found!\n");
+                
+                puts("spu_id = ");
+                print_decimal(spu_id);
+                puts("\n");
+
+                // Sc_Rx: eid0 = 0x100830006
+                // Sc_Rx: buffer_args_effective_addr = 0x8000000010086780
+                // Sc_Rx: lv2prot0 = 0x8000000000000000
+                // Sc_Rx: lv2prot1 = 0x352230
+                // Sc_Rx: lv2hash0 = 0xf13f8865d14703f4
+                // Sc_Rx: lv2hash1 = 0x749c5fd9a5fcc6b7
+                // Sc_Rx: lv2hash2 = 0x2f5b40a000000000
+
+                // Sc_Rx: 0x39010 = 0xf13f8865d14703f4
+                // Sc_Rx: 0x39018 = 0x749c5fd9a5fcc6b7
+                // Sc_Rx: 0x39020 = 0x2f5b40a000000000
+
+                // 0x370F20
+                // 80 00 00 00 00 00 00 00 00 00 00 00 00 35 22 30 F1 3F 88 65 D1 47 03 F4 74 9C 5F D9 A5 FC C6 B7 2F 5B 40 A0 00 00 00 00 00 00 00 00 00 00 00 00
+
+                // relocation off
+
+                uint64_t old_mfc_sr1 = SPU_P1_Read64(spu_id, 0x0);
+                SPU_P1_Write64(spu_id, 0x0, (old_mfc_sr1 & 0xFFFFFFFFFFFFFFEF));
+
+                //
+
+                LoadElfSpu(lv2HashGenFileAddress, spu_id);
+                eieio();
+
+                //
+                SPU_LS_Write64(spu_id, 0x3A0F0, stage5_lv2AreaAddr);
+                SPU_LS_Write64(spu_id, 0x3A0F8, stage5_lv2AreaSize);
+
+                eieio();
+
+                // SPU_RUNCNTL = 0x1
+                SPU_PS_Write32(spu_id, 0x0401C, 0x1);
+                eieio();
+
+                puts("Waiting for spu start...\n");
+
+                //while ((status & SPU_STATUS_RUN_MASK) == 0)
+                while (status != 0x690002)
                 {
                     status = SPU_PS_Read32(spu_id, 0x04024);
-                }
 
-                if (((status & SPU_STATUS_ISOLATED_MASK) != 0) && ((status & SPU_STATUS_RUN_MASK) != 0))
-                {
-                    puts("Found!\n");
+#if 0
 
-                    // stop request
-                    SPU_PS_Write32(spu_id, 0x0401C, 0x0);
-                    eieio();
+                    puts("status = ");
+                    print_hex(status);
 
-                    // wait until spu stop
-                    puts("Waiting for spu stop...\n");
-                    while ((status & SPU_STATUS_RUN_MASK) != 0)
+                    uint32_t npc = SPU_PS_Read32(spu_id, 0x04034);
+                    puts(", npc = ");
+                    print_hex(npc);
+
+                    uint64_t lslr = SPU_P2_Read64(spu_id, 0x04058);
+                    puts(", lslr = ");
+                    print_hex(lslr);
+
+                    uint32_t mbox = SPU_PS_Read32(spu_id, 0x04004);
+                    puts(", mbox = ");
+                    print_hex(mbox);
+
+                    puts("\n");
+
+                    for (uint64_t off = 0x39000; off < 0x39200; off += 8)
                     {
-                        status = SPU_PS_Read32(spu_id, 0x04024);
-                    }
+                        uint64_t x = SPU_LS_Read64(spu_id, off);
 
-                    puts("spu stopped.\n");
-
-                    // isolation exit
-                    SPU_PS_Write32(spu_id, 0x0401C, 0x2);
-                    eieio();
-
-                    // wait until spu exit isolation
-                    puts("Waiting for spu isolation exit...\n");
-                    while ((status & SPU_STATUS_ISOLATED_MASK) != 0)
-                    {
-                        status = SPU_PS_Read32(spu_id, 0x04024);
-                    }
-
-                    puts("spu isolation exited.\n");
-
-                    //
-
-                    LoadElfSpu(appldrFileAddress, spu_id);
-                    eieio();
-
-                    // SPU_RUNCNTL = 0x1
-                    SPU_PS_Write32(spu_id, 0x0401C, 0x1);
-                    eieio();
-
-                    // wait until spu start
-                    puts("Waiting for spu start...\n");
-                    //while ((status & SPU_STATUS_RUN_MASK) == 0)
-                    while (1)
-                    {
-                        status = SPU_PS_Read32(spu_id, 0x04024);
-
-                        uint32_t status = SPU_PS_Read32(spu_id, 0x04024);
-                        puts("status = ");
-                        print_hex(status);
-
-                        WaitInMs(1000);
-
-                        uint32_t npc = SPU_PS_Read32(spu_id, 0x04034);
-                        puts(", npc = ");
-                        print_hex(npc);
-
-                        uint64_t lslr = SPU_P2_Read64(spu_id, 0x04058);
-                        puts(", lslr = ");
-                        print_hex(lslr);
-
-                        uint32_t mbox = SPU_PS_Read32(spu_id, 0x04004);
-                        puts(", mbox = ");
-                        print_hex(mbox);
-
+                        print_hex(off);
+                        puts(" = ");
+                        print_hex(x);
                         puts("\n");
                     }
 
-                    break;
+                    for (uint64_t off = 0x3A000; off < 0x3A200; off += 8)
+                    {
+                        uint64_t x = SPU_LS_Read64(spu_id, off);
+
+                        print_hex(off);
+                        puts(" = ");
+                        print_hex(x);
+                        puts("\n");
+                    }
+
+                    WaitInMs(1000);
+
+#endif
                 }
+
+                // restore MFC_SR1
+                SPU_P1_Write64(spu_id, 0x0, old_mfc_sr1);
+                eieio();
+
+                //
+
+                *lv1_lv2AreaAddrPtr = 0x8000000000000000;
+                *lv1_lv2AreaSizePtr = stage5_lv2AreaSize;
+
+                lv1_lv2AreaHashPtr[0] = SPU_LS_Read64(spu_id, 0x39010);
+                lv1_lv2AreaHashPtr[1] = SPU_LS_Read64(spu_id, 0x39018);
+                lv1_lv2AreaHashPtr[2] = SPU_LS_Read64(spu_id, 0x39020);
+
+                //
+
+                puts("spu done.\n");
+                break;
             }
 
-            intr_enable();
+            if (found == 0)
+                puts("free spu not found!!\n");
         }
         else
             puts("file not found!\n");
     }
 
-    puts("Stage5 done.\n");
+    puts("after_lv1_lv2AreaAddr = ");
+    print_hex(*lv1_lv2AreaAddrPtr);
+
+    puts(", after_lv1_lv2AreaSize = ");
+    print_hex(*lv1_lv2AreaSizePtr);
+
+    puts("\n");
+
+    puts("after_lv1_lv2AreaHash[0] = ");
+    print_hex(lv1_lv2AreaHashPtr[0]);
+    puts("\n");
+
+    puts("after_lv1_lv2AreaHash[1] = ");
+    print_hex(lv1_lv2AreaHashPtr[1]);
+    puts("\n");
+
+    puts("after_lv1_lv2AreaHash[2] = ");
+    print_hex(lv1_lv2AreaHashPtr[2]);
+    puts("\n");
+
+    eieio();
+}
+
+#pragma GCC pop_options
+
+FUNC_DEF void Stage5()
+{
+    //puts("BadWDSD Stage5 by Kafuu(aomsin2526)\n");
+
+    //puts("(Build Date: ");
+    //puts(__DATE__);
+    //puts(" ");
+    //puts(__TIME__);
+    //puts(")\n");
+
+    Stage5_2();
+
+    //puts("Stage5 done.\n");
 }
 
 __attribute__((section("main5"))) void stage5_main()

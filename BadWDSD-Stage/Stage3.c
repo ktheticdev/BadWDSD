@@ -419,6 +419,8 @@ FUNC_DEF void Stage3()
     puts("Stage3 done.\n");
 }
 
+#if 0
+
 FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
 {
     puts("Stage3_AuthLv2(), laid = ");
@@ -522,6 +524,8 @@ FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
 
     puts("Stage3_AuthLv2() done.\n");
 }
+
+#endif
 
 #pragma GCC push_options
 #pragma GCC optimize("O0")
@@ -628,6 +632,8 @@ __attribute__((section("main3"))) void stage3_main()
     // r4 = 0
     asm volatile("li 4, 0");
 
+#if 0
+
     // auth lv2
     if (r5_2 == 0x30)
     {
@@ -636,6 +642,8 @@ __attribute__((section("main3"))) void stage3_main()
         // r6 = laid
         Stage3_AuthLv2(r6_2);
     }
+
+#endif
 
     if ((r5_2 != 0x0) && (r5_2 != 0x30))
         return;

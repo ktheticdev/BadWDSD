@@ -56,7 +56,7 @@ bool SearchAndReplace(void *in_data, uint64_t dataSize, const void *in_searchDat
     return false;
 }
 
-void lv1gen(const char *inFilePath, const char *outFilePath, const char *stage3jFilePath, const char *stage3jzFilePath)
+void lv1gen(const char *inFilePath, const char *outFilePath, const char *stage3jFilePath, const char *stage5jFilePath)
 {
     printf("lv1gen()\n");
 
@@ -64,14 +64,14 @@ void lv1gen(const char *inFilePath, const char *outFilePath, const char *stage3j
     printf("outFilePath = %s\n", outFilePath);
 
     printf("stage3jFilePath = %s\n", stage3jFilePath);
-    printf("stage3jzFilePath = %s\n", stage3jzFilePath);
+    printf("stage5jFilePath = %s\n", stage5jFilePath);
 
     FILE *inFile = fopen(inFilePath, "rb");
     FILE *outFile = fopen(outFilePath, "wb");
     FILE *stage3jFile = fopen(stage3jFilePath, "rb");
-    FILE *stage3jzFile = fopen(stage3jzFilePath, "rb");
+    FILE *stage5jFile = fopen(stage5jFilePath, "rb");
 
-    if (inFile == NULL || outFile == NULL || stage3jFile == NULL || stage3jzFile == NULL)
+    if (inFile == NULL || outFile == NULL || stage3jFile == NULL || stage5jFile == NULL)
     {
         printf("open file failed!\n");
 
@@ -119,29 +119,29 @@ void lv1gen(const char *inFilePath, const char *outFilePath, const char *stage3j
     fread(stage3jData, 1, stage3jFileSize, stage3jFile);
     fclose(stage3jFile);
 
-    size_t stage3jzFileSize = get_file_size(stage3jzFile);
-    printf("stage3jzFileSize = %lu\n", stage3jzFileSize);
+    size_t stage5jFileSize = get_file_size(stage5jFile);
+    printf("stage5jFileSize = %lu\n", stage5jFileSize);
 
-    if (stage3jzFileSize != 28)
+    if (stage5jFileSize != 20)
     {
-        printf("bad stage3jz file size!\n");
+        printf("bad stage2j file size!\n");
 
         abort();
         return;
     }
 
-    uint8_t *stage3jzData = (uint8_t *)malloc(stage3jzFileSize);
+    uint8_t *stage5jData = (uint8_t *)malloc(stage5jFileSize);
 
-    if (stage3jzData == NULL)
+    if (stage5jData == NULL)
     {
-        printf("stage3jzData failed!\n");
+        printf("stage5jData failed!\n");
 
         abort();
         return;
     }
 
-    fread(stage3jzData, 1, stage3jzFileSize, stage3jzFile);
-    fclose(stage3jzFile);
+    fread(stage5jData, 1, stage5jFileSize, stage5jFile);
+    fclose(stage5jFile);
 
     uint8_t *outData = (uint8_t *)malloc(inFileSize);
 
@@ -186,11 +186,27 @@ void lv1gen(const char *inFilePath, const char *outFilePath, const char *stage3j
 #if 1
 
     {
-        uint8_t searchData[] = { 0xE8, 0xA2, 0x84, 0x48, 0x38, 0x80, 0x00, 0x02, 0xE8, 0x62, 0x83, 0x18, 0x7F, 0xE6, 0x07, 0xB4, 0x48, 0x00, 0x59, 0x2D };
-        
-        printf("Installing stage3jz...\n");
+        printf("Writing 0x2401F031300 to offset 0x10210\n");
 
-        if (!SearchAndReplace(outData, inFileSize, searchData, 20, stage3jzData, stage3jzFileSize))
+        *((uint64_t *)&outData[0x10210]) = endswap64(0x2401F031300);
+    }
+
+#endif
+
+#if 1
+
+    {
+        uint8_t searchData[] = { 0x4B, 0xFF, 0xFC, 0x8D, 0x7C, 0x7E, 0x1B, 0x78, 0x38, 0x00, 0x00, 0x00, 0x7C, 0x01, 0x01, 0x64 };
+        
+        uint64_t replaceDataSize = sizeof(searchData) + stage5jFileSize;
+        uint8_t replaceData[replaceDataSize];
+
+        memcpy(replaceData, searchData, sizeof(searchData));
+        memcpy(replaceData + sizeof(searchData), stage5jData, stage5jFileSize);
+
+        printf("Installing stage5j...\n");
+
+        if (!SearchAndReplace(outData, inFileSize, searchData, sizeof(searchData), replaceData, replaceDataSize))
         {
             printf("install failed!\n");
         
@@ -243,7 +259,7 @@ void lv1gen(const char *inFilePath, const char *outFilePath, const char *stage3j
 
     free(outData);
 
-    free(stage3jzData);
+    free(stage5jData);
     free(stage3jData);
     free(inData);
 
@@ -379,7 +395,7 @@ int main(int argc, char **argv)
         lv1diff(argv[2], argv[3], argv[4]);
     else
     {
-        printf("lv1gen <inFile> <outFile> <stage3j> <stage3jz>\n");
+        printf("lv1gen <inFile> <outFile> <stage3j> <stage5j>\n");
         printf("lv1diff <inFile1> <inFile2> <outFile>\n");
     }
 
