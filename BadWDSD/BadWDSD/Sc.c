@@ -46,9 +46,6 @@ void Sc_RxFn()
 
         if (ch == '\n' || (scContext.rxBufLen >= 1023))
         {
-            PrintLog("Sc_Rx: ");
-            PrintLog("%s", scContext.rxBuf);
-
             {
                 volatile struct Sc_SendCommandContext_s *ctx = scContext.sendCommandCtx;
 
@@ -71,6 +68,19 @@ void Sc_RxFn()
                         sync();
                     }
                 }
+            }
+
+            if (scContext.rxBufLen >= 2)
+            {
+                PrintLog("Sc_Rx: ");
+
+                --scContext.rxBufLen;
+                scContext.rxBuf[scContext.rxBufLen] = 0;
+
+                --scContext.rxBufLen;
+                scContext.rxBuf[scContext.rxBufLen] = '\n';
+
+                PrintLog("%s", scContext.rxBuf);
             }
 
             scContext.rxBufLen = 0;

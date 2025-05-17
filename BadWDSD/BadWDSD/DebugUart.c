@@ -17,11 +17,21 @@ void DebugUart_RxFn()
         if (ch == 0)
             continue;
 
+        if (ch == '\r')
+            continue;
+
+        if (ch == '\n')
+        {
+            debugUartContext.txBuf[debugUartContext.txBufLen] = '\r';
+            ++debugUartContext.txBufLen;
+            debugUartContext.txBuf[debugUartContext.txBufLen] = 0;
+        }
+
         debugUartContext.txBuf[debugUartContext.txBufLen] = ch;
         ++debugUartContext.txBufLen;
         debugUartContext.txBuf[debugUartContext.txBufLen] = 0;
 
-        if ((ch == '\n') || (debugUartContext.txBufLen >= 2047))
+        if ((ch == '\n') || (debugUartContext.txBufLen >= 2000))
         {
             Sc_Puts(debugUartContext.txBuf);
             debugUartContext.txBufLen = 0;
