@@ -124,6 +124,8 @@ register uint64_t stage_rtoc asm("r20");
 register uint64_t stage_sp asm("r21");
 register uint64_t stage_zero asm("r22");
 
+register uint64_t interrupt_depth asm("r26");
+
 FUNC_DEF uint8_t IsLv1()
 {
     return (is_lv1 == 0x9669) || (is_lv1 == 0x9666) ? 1 : 0;
@@ -421,28 +423,41 @@ FUNC_DEF void dead()
 
 FUNC_DEF void intr_disable()
 {
-    // li      %r0, 2
-    // mtmsrd  %r0, 1
+    if (interrupt_depth == 0)
+    {
+        // li      %r0, 2
+        // mtmsrd  %r0, 1
 
-    asm volatile("li 0, 2");
-    asm volatile("mtmsrd 0, 1");
+        asm volatile("li 0, 2");
+        asm volatile("mtmsrd 0, 1");
 
-    eieio();
+        eieio();
+    }
+
+    ++interrupt_depth;
 }
 
 FUNC_DEF void intr_enable()
 {
-    // li  %r0, 0
-    // ori %r0, %r0, 0x8002
-    // eieio
-    // sync
-    // mtmsrd  %r0, 1
+    if (interrupt_depth == 0)
+        dead();
 
-    asm volatile("li 0, 0");
-    asm volatile("ori 0, 0, 0x8002");
-    eieio();
+    --interrupt_depth;
 
-    asm volatile("mtmsrd 0, 1");
+    if (interrupt_depth == 0)
+    {
+        // li  %r0, 0
+        // ori %r0, %r0, 0x8002
+        // eieio
+        // sync
+        // mtmsrd  %r0, 1
+
+        asm volatile("li 0, 0");
+        asm volatile("ori 0, 0, 0x8002");
+        eieio();
+
+        asm volatile("mtmsrd 0, 1");
+    }
 }
 
 // timebase = 79800000

@@ -33,7 +33,7 @@ seg002:00000000002B30CC                 b         sub_2B5088
 
 #endif
 
-// 0x2401F031300
+// 0x2401F031400
 
 stage_entry:
     li %r11, 0x210

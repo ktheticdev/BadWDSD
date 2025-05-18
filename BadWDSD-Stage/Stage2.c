@@ -228,6 +228,9 @@ __attribute__((noreturn, section("entry2"))) void stage2_entry()
     asm volatile("mflr %0" : "=r"(stage_entry_ra)::);
     stage_entry_ra -= 4;
 
+    // set interrupt_depth to 0
+    interrupt_depth = 0;
+
     // set is_lv1 to 0
     is_lv1 = 0;
 
@@ -236,7 +239,7 @@ __attribute__((noreturn, section("entry2"))) void stage2_entry()
 
     // set stage_rtoc
     stage_rtoc = stage_entry_ra;
-    stage_rtoc += 0x400; // .toc
+    stage_rtoc += 0x500; // .toc
     stage_rtoc += 0x8000;
 
     // set r2 to stage_rtoc

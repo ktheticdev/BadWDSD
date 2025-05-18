@@ -14,6 +14,8 @@ FUNC_DEF void Stage5()
     //puts(__TIME__);
     //puts(")\n");
 
+#if 0
+
     {
         //
 
@@ -26,8 +28,14 @@ FUNC_DEF void Stage5()
 
         uint64_t *lv1_lv2AreaSizePtr = (uint64_t *)0x370F28;
 
-        uint64_t lv2AreaAddrRa = 0x1000000;
-        
+        uint64_t lv2AreaAddrRa = 0x0;
+
+        if (!FindLv2(&lv2AreaAddrRa))
+        {
+            puts("lv2 area not found!\n");
+            return;
+        }
+
         //
 
         uint64_t hash = 0;
@@ -40,9 +48,30 @@ FUNC_DEF void Stage5()
         if (*stage5_HashCache != hash)
         {
             *stage5_HashCache = hash;
-
             RegenLv2AreaHash(6);
         }
+    }
+
+#endif
+
+    {
+        uint64_t *lv1_lv2AreaAddrPtr = (uint64_t *)0x370F20;
+        uint64_t *lv1_lv2AreaSizePtr = (uint64_t *)0x370F28;
+
+        *lv1_lv2AreaAddrPtr = 0x8000000000000000;
+        *lv1_lv2AreaSizePtr = 16;
+
+        //Sc_Rx: after_lv1_lv2AreaHash[0] = 0xfa60f9a679d561e2
+        //Sc_Rx: after_lv1_lv2AreaHash[1] = 0x4766aa39b90084b0
+        //Sc_Rx: after_lv1_lv2AreaHash[2] = 0xb27d2ff00000000
+
+        uint64_t *lv1_lv2AreaHashPtr = (uint64_t *)0x370F30;
+
+        lv1_lv2AreaHashPtr[0] = 0xfa60f9a679d561e2;
+        lv1_lv2AreaHashPtr[1] = 0x4766aa39b90084b0;
+        lv1_lv2AreaHashPtr[2] = 0x0b27d2ff00000000;
+
+        eieio();
     }
 
     //puts("Stage5 done.\n");
@@ -116,6 +145,9 @@ __attribute__((noreturn, section("entry5"))) void stage5_entry()
 
     // set lv1_rtoc
     asm volatile("mr %0, 2" : "=r"(lv1_rtoc)::);
+
+    // set interrupt_depth to 0
+    interrupt_depth = 0;
 
     // set is_lv1 to 0x9666
     is_lv1 = 0x9666;

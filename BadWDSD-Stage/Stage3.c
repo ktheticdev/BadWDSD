@@ -237,17 +237,6 @@ FUNC_DEF void Stage3()
             lv1_write(0x309E4C, 32, patches);
         }
 
-        {
-            puts("Patching Shutdown on LV2 modification\n");
-
-            uint64_t old;
-            lv1_read(0x2b4434, 8, &old);
-            old &= 0x00000000FFFFFFFFULL;
-
-            uint64_t newval = 0x6000000000000000ULL | old;
-            lv1_write(0x2b4434, 8, &newval);
-        }
-
         // HTAB
 
         {
@@ -259,17 +248,6 @@ FUNC_DEF void Stage3()
 
             uint64_t newval = 0x3860000000000000ULL | old;
             lv1_write(0x0AC594, 8, &newval);
-        }
-
-        {
-            puts("Patching Update Manager EEPROM write access\n");
-
-            uint64_t old;
-            lv1_read(0x0FEBD4, 8, &old);
-            old &= 0x00000000FFFFFFFFULL;
-
-            uint64_t newval = 0x3800000000000000ULL | old;
-            lv1_write(0x0FEBD4, 8, &newval);
         }
 
         // Repo nodes
@@ -340,77 +318,22 @@ FUNC_DEF void Stage3()
             }
         }
 
+        // UM EEPROM
+        
         {
-            puts("Patching lv1_set_dabr\n");
-
-            uint64_t old;
-            lv1_read(0x2EB550, 8, &old);
-            old &= 0x00000000FFFFFFFFULL;
-
-            uint64_t newval = 0x3800000F00000000ULL | old;
-            lv1_write(0x2EB550, 8, &newval);
-        }
-
-        {
-            puts("Patching Dispatch Manager\n");
-
             {
-                uint64_t old;
-                lv1_read(0x16FA64, 8, &old);
-                old &= 0x00000000FFFFFFFFULL;
+                puts("Patching Update Manager EEPROM Read\n");
 
-                uint64_t newval = 0x6000000000000000ULL | old;
-                lv1_write(0x16FA64, 8, &newval);
+                uint64_t patches = 0x6000000038000001;
+                lv1_write(0xFC4DC, 8, &patches);
             }
 
             {
-                uint64_t old;
-                lv1_read(0x16FA88, 8, &old);
-                old &= 0x00000000FFFFFFFFULL;
+                puts("Patching Update Manager EEPROM Write\n");
 
-                uint64_t newval = 0x3860000100000000ULL | old;
-                lv1_write(0x16FA88, 8, &newval);
+                uint64_t patches = 0x6000000038000001;
+                lv1_write(0xFEA38, 8, &patches);
             }
-
-            {
-                uint64_t old;
-                lv1_read(0x16FB00, 8, &old);
-                old &= 0x00000000FFFFFFFFULL;
-
-                uint64_t newval = 0x3BE0000100000000ULL | old;
-                lv1_write(0x16FB00, 8, &newval);
-            }
-
-            {
-                uint64_t old;
-                lv1_read(0x16FB08, 8, &old);
-                old &= 0x00000000FFFFFFFFULL;
-
-                uint64_t newval = 0x3860000000000000ULL | old;
-                lv1_write(0x16FB08, 8, &newval);
-            }
-        }
-
-        {
-            puts("Patching MFC_SR1\n");
-
-            uint64_t old;
-            lv1_read(0x2F9EB8, 8, &old);
-            old &= 0x00000000FFFFFFFFULL;
-
-            uint64_t newval = 0x3920FFFF00000000ULL | old;
-            lv1_write(0x2F9EB8, 8, &newval);
-        }
-
-        {
-            puts("Patching ACL\n");
-
-            uint64_t patches[2];
-
-            patches[0] = 0x386000012F830000ULL;
-            patches[1] = 0x419E001438000001ULL;
-
-            lv1_write(0x25C504, 16, patches);
         }
     }
 
@@ -511,6 +434,8 @@ FUNC_DEF void ApplyLv2Diff(uint64_t lv2AreaAddr, uint8_t useNewVal)
 
 #pragma GCC push_options
 #pragma GCC optimize("O0")
+
+#if 0
 
 FUNC_DEF void RegenLv2AreaHash(uint64_t spu_id)
 {
@@ -640,13 +565,13 @@ FUNC_DEF void RegenLv2AreaHash(uint64_t spu_id)
     puts("RegenLv2AreaHash done.\n");
 }
 
+#endif
+
 FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
 {
     puts("Stage3_AuthLv2(), laid = ");
     print_hex(laid);
     puts("\n");
-
-    // uint8_t* destPtr = (uint8_t*)0x8000000;
 
     // ps2 = 0x1020000003000001
     // ps3 = 0x1070000002000001
@@ -654,27 +579,51 @@ FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
     uint64_t *stage5_loopCount = (uint64_t *)0x220;
     *stage5_loopCount = 0;
 
-    {
-        uint64_t lv2AreaAddrRa = 0x0;
+#if 0
 
-        if (!FindLv2(&lv2AreaAddrRa))
+    uint64_t *lv1_lv2AreaAddrPtr = (uint64_t *)0x370F20;
+    uint64_t *lv1_lv2AreaSizePtr = (uint64_t *)0x370F28;
+
+    *lv1_lv2AreaAddrPtr = 0x8000000000000000;
+    *lv1_lv2AreaSizePtr = 16;
+
+    //Sc_Rx: after_lv1_lv2AreaHash[0] = 0xfa60f9a679d561e2
+    //Sc_Rx: after_lv1_lv2AreaHash[1] = 0x4766aa39b90084b0
+    //Sc_Rx: after_lv1_lv2AreaHash[2] = 0xb27d2ff00000000
+
+    uint64_t *lv1_lv2AreaHashPtr = (uint64_t *)0x370F30;
+
+    lv1_lv2AreaHashPtr[0] = 0xfa60f9a679d561e2;
+    lv1_lv2AreaHashPtr[1] = 0x4766aa39b90084b0;
+    lv1_lv2AreaHashPtr[2] = 0x0b27d2ff00000000;
+
+    eieio();
+
+#endif
+
+    if (laid == 0x1070000002000001)
+    {
         {
-            puts("lv2 area not found!\n");
-            return;
+            uint64_t lv2AreaAddrRa = 0x0;
+
+            if (!FindLv2(&lv2AreaAddrRa))
+            {
+                puts("lv2 area not found!\n");
+                return;
+            }
+
+            puts("lv2AreaAddrRa = ");
+            print_hex(lv2AreaAddrRa);
+            puts("\n");
+
+            ApplyLv2Diff(lv2AreaAddrRa, 1);
+
+            eieio();
         }
 
-        puts("lv2AreaAddrRa = ");
-        print_hex(lv2AreaAddrRa);
-        puts("\n");
-
-        ApplyLv2Diff(lv2AreaAddrRa, 1);
-
-        //*((uint64_t*)(lv2AreaAddrRa + 0x110)) = 0x69;
-        eieio();
+        //RegenLv2AreaHash(6);
+        //eieio();
     }
-
-    //RegenLv2AreaHash(6);
-    eieio();
 
     puts("Stage3_AuthLv2() done.\n");
 }
@@ -799,7 +748,7 @@ __attribute__((section("main3"))) void stage3_main()
 
 #endif
 
-    if ((r5_2 != 0x0) && (r5_2 != 0x30))
+    if ((r5_2 != 0x0) && (r5_2 != 0x30) && (r5_2 != 0x31))
         return;
 
     uint64_t *alreadyDone = (uint64_t *)0x128;
@@ -845,6 +794,45 @@ __attribute__((noreturn, section("entry3"))) void stage3_entry()
     asm volatile("stage3_start:");
 
     // push stack
+    asm volatile("addi 1, 1, -512");
+
+    // store all registers to stack
+    asm volatile("std 0, %0(1)" ::"i"(8 * 0) :);
+    asm volatile("std 1, %0(1)" ::"i"(8 * 1) :);
+    asm volatile("std 2, %0(1)" ::"i"(8 * 2) :);
+    asm volatile("std 3, %0(1)" ::"i"(8 * 3) :);
+    asm volatile("std 4, %0(1)" ::"i"(8 * 4) :);
+    asm volatile("std 5, %0(1)" ::"i"(8 * 5) :);
+    asm volatile("std 6, %0(1)" ::"i"(8 * 6) :);
+    asm volatile("std 7, %0(1)" ::"i"(8 * 7) :);
+    asm volatile("std 8, %0(1)" ::"i"(8 * 8) :);
+    asm volatile("std 9, %0(1)" ::"i"(8 * 9) :);
+    asm volatile("std 10, %0(1)" ::"i"(8 * 10) :);
+    asm volatile("std 11, %0(1)" ::"i"(8 * 11) :);
+    asm volatile("std 12, %0(1)" ::"i"(8 * 12) :);
+    asm volatile("std 13, %0(1)" ::"i"(8 * 13) :);
+    asm volatile("std 14, %0(1)" ::"i"(8 * 14) :);
+    asm volatile("std 15, %0(1)" ::"i"(8 * 15) :);
+    asm volatile("std 16, %0(1)" ::"i"(8 * 16) :);
+    asm volatile("std 17, %0(1)" ::"i"(8 * 17) :);
+    asm volatile("std 18, %0(1)" ::"i"(8 * 18) :);
+    asm volatile("std 19, %0(1)" ::"i"(8 * 19) :);
+    asm volatile("std 20, %0(1)" ::"i"(8 * 20) :);
+    asm volatile("std 21, %0(1)" ::"i"(8 * 21) :);
+    asm volatile("std 22, %0(1)" ::"i"(8 * 22) :);
+    asm volatile("std 23, %0(1)" ::"i"(8 * 23) :);
+    asm volatile("std 24, %0(1)" ::"i"(8 * 24) :);
+    asm volatile("std 25, %0(1)" ::"i"(8 * 25) :);
+    asm volatile("std 26, %0(1)" ::"i"(8 * 26) :);
+    asm volatile("std 27, %0(1)" ::"i"(8 * 27) :);
+    asm volatile("std 28, %0(1)" ::"i"(8 * 28) :);
+    asm volatile("std 29, %0(1)" ::"i"(8 * 29) :);
+    asm volatile("std 30, %0(1)" ::"i"(8 * 30) :);
+    asm volatile("std 31, %0(1)" ::"i"(8 * 31) :);
+
+#if 1
+
+    // push stack
     asm volatile("addi 1, 1, -64");
 
     // store original rtoc to stack
@@ -857,10 +845,13 @@ __attribute__((noreturn, section("entry3"))) void stage3_entry()
     // set stage_entry_ra
     asm volatile("bl 4");
     asm volatile("mflr %0" : "=r"(stage_entry_ra)::);
-    stage_entry_ra -= (4 * 10);
+    stage_entry_ra -= (4 * 43);
 
     // set lv1_rtoc
     asm volatile("mr %0, 2" : "=r"(lv1_rtoc)::);
+
+    // set interrupt_depth to 0
+    interrupt_depth = 0;
 
     // set is_lv1 to 0x9669
     is_lv1 = 0x9669;
@@ -870,20 +861,20 @@ __attribute__((noreturn, section("entry3"))) void stage3_entry()
 
     // set stage_rtoc
     stage_rtoc = stage_entry_ra;
-    stage_rtoc += 0x300; // .toc
+    stage_rtoc += 0x400; // .toc
     stage_rtoc += 0x8000;
 
     // set r2 to stage_rtoc
     asm volatile("mr 2, %0" ::"r"(stage_rtoc) :);
 
     // set lv1_sp
-    asm volatile("mr %0, 1" :"=r"(lv1_sp)::);
+    asm volatile("mr %0, 1" : "=r"(lv1_sp)::);
 
     // set stage_sp to 0xE000000
-    //stage_sp = 0xE000000;
+    stage_sp = 0xE000000;
 
     // set r1 to stage_sp
-    //asm volatile("mr 1, %0" ::"r"(stage_sp) :);
+    asm volatile("mr 1, %0" ::"r"(stage_sp) :);
 
     // sync
     asm volatile("sync");
@@ -905,11 +896,50 @@ __attribute__((noreturn, section("entry3"))) void stage3_entry()
     // pop stack
     asm volatile("addi 1, 1, 64");
 
-    // r3 = 0
-    asm volatile("li %0, 0" : "=r"(r3)::);
+#endif
+
+    // restore all registers from stack
+    asm volatile("ld 0, %0(1)" ::"i"(8 * 0) :);
+    asm volatile("ld 1, %0(1)" ::"i"(8 * 1) :);
+    asm volatile("ld 2, %0(1)" ::"i"(8 * 2) :);
+    asm volatile("ld 3, %0(1)" ::"i"(8 * 3) :);
+    asm volatile("ld 4, %0(1)" ::"i"(8 * 4) :);
+    asm volatile("ld 5, %0(1)" ::"i"(8 * 5) :);
+    asm volatile("ld 6, %0(1)" ::"i"(8 * 6) :);
+    asm volatile("ld 7, %0(1)" ::"i"(8 * 7) :);
+    asm volatile("ld 8, %0(1)" ::"i"(8 * 8) :);
+    asm volatile("ld 9, %0(1)" ::"i"(8 * 9) :);
+    asm volatile("ld 10, %0(1)" ::"i"(8 * 10) :);
+    asm volatile("ld 11, %0(1)" ::"i"(8 * 11) :);
+    asm volatile("ld 12, %0(1)" ::"i"(8 * 12) :);
+    asm volatile("ld 13, %0(1)" ::"i"(8 * 13) :);
+    asm volatile("ld 14, %0(1)" ::"i"(8 * 14) :);
+    asm volatile("ld 15, %0(1)" ::"i"(8 * 15) :);
+    asm volatile("ld 16, %0(1)" ::"i"(8 * 16) :);
+    asm volatile("ld 17, %0(1)" ::"i"(8 * 17) :);
+    asm volatile("ld 18, %0(1)" ::"i"(8 * 18) :);
+    asm volatile("ld 19, %0(1)" ::"i"(8 * 19) :);
+    asm volatile("ld 20, %0(1)" ::"i"(8 * 20) :);
+    asm volatile("ld 21, %0(1)" ::"i"(8 * 21) :);
+    asm volatile("ld 22, %0(1)" ::"i"(8 * 22) :);
+    asm volatile("ld 23, %0(1)" ::"i"(8 * 23) :);
+    asm volatile("ld 24, %0(1)" ::"i"(8 * 24) :);
+    asm volatile("ld 25, %0(1)" ::"i"(8 * 25) :);
+    asm volatile("ld 26, %0(1)" ::"i"(8 * 26) :);
+    asm volatile("ld 27, %0(1)" ::"i"(8 * 27) :);
+    asm volatile("ld 28, %0(1)" ::"i"(8 * 28) :);
+    asm volatile("ld 29, %0(1)" ::"i"(8 * 29) :);
+    asm volatile("ld 30, %0(1)" ::"i"(8 * 30) :);
+    asm volatile("ld 31, %0(1)" ::"i"(8 * 31) :);
+
+    // pop stack
+    asm volatile("addi 1, 1, 512");
 
     // sync
     asm volatile("sync");
+
+    // r3 = 0
+    asm volatile("li %0, 0" : "=r"(r3)::);
 
     // blr
     asm volatile("blr");
