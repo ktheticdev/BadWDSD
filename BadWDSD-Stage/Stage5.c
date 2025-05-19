@@ -58,7 +58,7 @@ FUNC_DEF void Stage5()
         uint64_t *lv1_lv2AreaAddrPtr = (uint64_t *)0x370F20;
         uint64_t *lv1_lv2AreaSizePtr = (uint64_t *)0x370F28;
 
-        *lv1_lv2AreaAddrPtr = 0x8000000000000000;
+        *lv1_lv2AreaAddrPtr = 0x8000000000000000; // 0x8000000000000000
         *lv1_lv2AreaSizePtr = 16;
 
         //Sc_Rx: after_lv1_lv2AreaHash[0] = 0xfa60f9a679d561e2

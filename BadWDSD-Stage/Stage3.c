@@ -318,8 +318,10 @@ FUNC_DEF void Stage3()
             }
         }
 
+#if 1
+
         // UM EEPROM
-        
+
         {
             {
                 puts("Patching Update Manager EEPROM Read\n");
@@ -333,6 +335,42 @@ FUNC_DEF void Stage3()
 
                 uint64_t patches = 0x6000000038000001;
                 lv1_write(0xFEA38, 8, &patches);
+            }
+        }
+
+#endif
+
+    }
+
+    {
+        puts("Patching lv2_kernel.self LPAR initial size\n");
+
+        const char* searchData = "/flh/os/lv2_kernel.self";
+        uint64_t searchDataSize = strlen(searchData) + 1;
+
+        {
+            for (uint64_t i = 0; i < 0x200000; i += 4)
+            {
+                if (memcmp((void*)i, searchData, searchDataSize))
+                    continue;
+
+                puts("addr = ");
+                print_hex(i);
+                puts("\n");
+
+                for (uint64_t i2 = 0; i2 < 0x200; i2 += 1)
+                {
+                    uint8_t* vv = (uint8_t*)(i + i2);
+
+                    if (*vv != 0x18)
+                        continue;
+
+                    puts("x = ");
+                    print_hex(i2); // 0x107
+                    puts("\n");
+
+                    *vv = 0x1B; // 128M
+                }
             }
         }
     }
@@ -740,10 +778,14 @@ __attribute__((section("main3"))) void stage3_main()
     // auth lv2
     if (r5_2 == 0x30)
     {
+        intr_disable();
+
         sc_puts_init();
 
         // r6 = laid
         Stage3_AuthLv2(r6_2);
+
+        intr_enable();
     }
 
 #endif
@@ -756,8 +798,12 @@ __attribute__((section("main3"))) void stage3_main()
     if (*alreadyDone == 0x69)
         return;
 
+    intr_disable();
+
     sc_puts_init();
     Stage3();
+
+    intr_enable();
 
     *alreadyDone = 0x69;
 }
