@@ -1,5 +1,5 @@
 #define SC_PUTS_BUFFER_ENABLED 1
-#define SC_LV1_LOGGING_ENABLED 1
+//#define SC_LV1_LOGGING_ENABLED 1
 
 //#define STAGE5_LOG_ENABLED 1
 
@@ -609,19 +609,70 @@ FUNC_DEF_NONSTATIC void WaitInMs2(uint64_t ms)
 
 FUNC_DEF void memset(void *buf, uint8_t v, uint64_t count)
 {
-    volatile uint8_t *buff = (volatile uint8_t *)buf;
+    if ((((uint64_t)buf % 8) == 0) && ((count % 8) == 0))
+    {
+        uint64_t *buff = (uint64_t *)buf;
 
-    for (uint64_t i = 0; i < count; ++i)
-        buff[i] = v;
+        for (uint64_t i = 0; i < (count / 8); ++i)
+            buff[i] = v;
+    }
+    else if ((((uint64_t)buf % 4) == 0) && ((count % 4) == 0))
+    {
+        uint32_t *buff = (uint32_t *)buf;
+
+        for (uint64_t i = 0; i < (count / 4); ++i)
+            buff[i] = v;
+    }
+    else if ((((uint64_t)buf % 2) == 0) && ((count % 2) == 0))
+    {
+        uint16_t *buff = (uint16_t *)buf;
+
+        for (uint64_t i = 0; i < (count / 2); ++i)
+            buff[i] = v;
+    }
+    else
+    {
+        uint8_t *buff = (uint8_t *)buf;
+
+        for (uint64_t i = 0; i < count; ++i)
+            buff[i] = v;
+    }
 }
 
 FUNC_DEF void memcpy(void *dest, const void *src, uint64_t count)
 {
-    volatile uint8_t *destt = (volatile uint8_t *)dest;
-    const volatile uint8_t *srcc = (const volatile uint8_t *)src;
+    if ((((uint64_t)dest % 8) == 0) && (((uint64_t)src % 8) == 0) && ((count % 8) == 0))
+    {
+        uint64_t *destt = (uint64_t *)dest;
+        const uint64_t *srcc = (const uint64_t *)src;
 
-    for (uint64_t i = 0; i < count; ++i)
-        destt[i] = srcc[i];
+        for (uint64_t i = 0; i < (count / 8); ++i)
+            destt[i] = srcc[i];
+    }
+    else if ((((uint64_t)dest % 4) == 0) && (((uint64_t)src % 4) == 0) && ((count % 4) == 0))
+    {
+        uint32_t *destt = (uint32_t *)dest;
+        const uint32_t *srcc = (const uint32_t *)src;
+
+        for (uint64_t i = 0; i < (count / 4); ++i)
+            destt[i] = srcc[i];
+    }
+    else if ((((uint64_t)dest % 2) == 0) && (((uint64_t)src % 2) == 0) && ((count % 2) == 0))
+    {
+        uint16_t *destt = (uint16_t *)dest;
+        const uint16_t *srcc = (const uint16_t *)src;
+
+        for (uint64_t i = 0; i < (count / 2); ++i)
+            destt[i] = srcc[i];
+    }
+    else
+    {
+        uint8_t *destt = (uint8_t *)dest;
+        const uint8_t *srcc = (const uint8_t *)src;
+
+        for (uint64_t i = 0; i < count; ++i)
+            destt[i] = srcc[i];
+    }
 }
 
 FUNC_DEF uint8_t memcmp(const void *p1, const void *p2, uint64_t count)

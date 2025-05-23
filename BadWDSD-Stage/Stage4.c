@@ -33,7 +33,7 @@ FUNC_DEF void Stage4()
     uint64_t loadme_addr = FindLoadMe();
 
     puts("loadme_addr = ");
-    print_hex(FindLoadMe());
+    print_hex(loadme_addr);
     puts("\n");
 
     if (loadme_addr == 0)

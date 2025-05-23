@@ -202,6 +202,25 @@ FUNC_DEF void Stage2()
                 puts("Patch failed!\n");
         }
 
+#if 0
+
+        // not working on 28nm
+        {
+            static const uint32_t vramClock = 800;
+
+            puts("Patching RSX vram clock to ");
+            print_decimal(vramClock);
+            puts("Mhz\n");
+
+            uint8_t searchData[] = {0x0a, 0x02, 0x00, 0x00, 0x00, 0xa1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1a, 0x04};
+            uint8_t replaceData[] = {0x0a, 0x02, 0x00, 0x00, 0x00, 0xa1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (vramClock / 25), 0x04};
+
+            if (!SearchAndReplace((void *)0x0, (16 * 1024 * 1024), searchData, sizeof(searchData), replaceData, sizeof(replaceData)))
+                puts("Patch failed!\n");
+        }
+
+#endif
+
         puts("Booting lv1...\n");
 
         eieio();
