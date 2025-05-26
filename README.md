@@ -10,7 +10,7 @@ I avoid calling this modchip a "glitch" because XDR ram itself is working perfec
 
 This modchip replace and unrelated to previous **BadHTAB** exploit. While both are exploiting XDR ram. Method it uses is completely different.
 
-This modchip then allow full access to lv1 hypervisor and ability to run new variant of CFW called **qCFW**. Unlock many features of CFW that HEN can't do.
+This modchip then allow full access to lv1 hypervisor and ability to run new variant of persistence CFW called **qCFW**. Unlock many features of CFW that HEN can't do.
 It can also used to recover console such as exit FSM, or updating consoles with dead BD/BT module. Downgrading also possible.
 
 With proper solder and wiring, this modchip is very stable and should get you to XMB within 30 secs.
