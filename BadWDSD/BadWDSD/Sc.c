@@ -46,7 +46,7 @@ void Sc_RxFn()
 
         bool reset = false;
 
-        if ((get_time_in_ms() - scContext.lastScTxTimeInMs) > 1000)
+        if ((get_time_in_ms() - scContext.lastScTxTimeInMs) > 5000)
         {
 
 #if SC_IS_SW
