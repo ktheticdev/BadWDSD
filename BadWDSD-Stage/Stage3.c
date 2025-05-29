@@ -342,7 +342,7 @@ FUNC_DEF void Stage3()
             }
         }
 
-#if 1
+#if 0
 
         {
             {
