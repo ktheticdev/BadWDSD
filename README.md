@@ -6,7 +6,7 @@ This is a **hardware modchip** for Sony Playstation 3. By abusing a "feature" ca
 So if we do it while first boot loader (bootldr/lv0ldr) is decrypting lv0 (second boot loader) and writing decrypted data to memory. In reality, our code will be written to memory instead.
 If it hit address **0x100 (Reset vector)**, when PPU core starts our code will get executed instead. Gaining custom code execution very early on.
 
-It is patchable by Sony with new hardware by simply read and check the data after write. But it is too late for them now since ps3 is no longer made.
+It is patchable by Sony with new hardware by simply read and verify the data after write. But it is too late for them now since ps3 is no longer made.
 
 I avoid calling this modchip a "glitch" because XDR ram itself is working perfectly as intended. Every command we send to it is valid. WDSD register are for initialization purpose. But we "abuse" it to do benefit thing for us.
 
