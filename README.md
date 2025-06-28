@@ -40,6 +40,8 @@ This is pretty much **HEN + lv1 peek/poke**. It is very safe since it doesn't mo
 
 **Supports firmware 4.70 or later**
 
+You only need **Stagex.bin** to run this mode, since Stagex.bin stay even after firmware update, you only need to install it once.
+
 # qCFW Mode
 
 You can't install any existing CFW or any custom PUP, so new variant of CFW must be made. This variant will be called qCFW (quasi-CFW). It is persistence, stable and much more powerful than HEN/OFW Mode.
