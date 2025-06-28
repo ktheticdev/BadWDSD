@@ -41,6 +41,7 @@ This is pretty much **HEN + lv1 peek/poke**. It is very safe since it doesn't mo
 **Supports firmware 4.70 or later**
 
 You only need **Stagex.bin** to run this mode, since Stagex.bin stay even after firmware update, you only need to install it once.
+You can take any Stagex.bin from qCFW releases.
 
 # qCFW Mode
 
@@ -58,3 +59,5 @@ It's not at its peak yet at current state, but it is powerful and stable enough 
   * PS1 Emu can't be modified
   * VSH modules (self/sprx) at **/dev_flash/vsh/module/** can't be modified, Don't modify these files or you will brick
   * If you turn on your console through PS button on your controller, it won't sync until you power cycle the controller by holding PS button until it turn off, then press it to turn on again. This is caused by load Cobra from USB.
+
+**Stagex.bin and CoreOS.bin** will be released in pair. So ensure that you install both of them and they're matched!
