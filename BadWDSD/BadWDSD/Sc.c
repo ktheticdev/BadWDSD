@@ -167,7 +167,7 @@ void Sc_Init()
     if (!Sc_GetScBypass())
     {
         PrintLog("SC Auth...\n");
-        busy_wait_ms(3500);
+        //busy_wait_ms(500);
 
         //
 

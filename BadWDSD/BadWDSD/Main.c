@@ -262,12 +262,16 @@ void Sc_Thread_x16_Stage0()
 
             //
 
-            busy_wait_ms(500);
+            busy_wait_ms(200);
 
             //
 
             Xdr_SendDisableSLE_x16_PerDevice(1);
             Xdr_SendDisableSLE_x16_PerDevice(0);
+
+            //
+
+            busy_wait_ms(300);
 
             //
 
@@ -333,11 +337,15 @@ void Sc_Thread_x32_Stage0()
 
             //
 
-            busy_wait_ms(500);
+            busy_wait_ms(200);
 
             //
 
             //Xdr_SendDisableSLE_x32_PerDevice(0);
+
+            //
+            
+            busy_wait_ms(300);
 
             //
 
