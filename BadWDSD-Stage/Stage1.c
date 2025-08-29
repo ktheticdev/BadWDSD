@@ -60,7 +60,7 @@ FUNC_DEF void Stage1()
                     lv0FileAddress = 0xC000000;
                     lv0FileSize = (4 * 1024 * 1024);
 
-                    ZelfDecompress(zelfFileAddress, (void*)lv0FileAddress, &lv0FileSize);
+                    ZelfDecompress(zelfFileAddress, (void*)lv0FileAddress, &lv0FileSize, 1);
                 }
                 else
                     puts("File not found!\n");
@@ -93,7 +93,7 @@ FUNC_DEF void Stage1()
                     //WaitInMs(1500);
                     //sc_triple_beep();
 
-                    DecryptLv0Self((void*)lv0FileAddress, (const void*)lv0SelfFileAddress);
+                    DecryptLv0Self((void*)lv0FileAddress, (const void*)lv0SelfFileAddress, 1);
 
                     {
                         uint8_t searchData[] = {0x38, 0x60, 0x01, 0x00, 0x7C, 0x69, 0x03, 0xA6, 0x4E, 0x80, 0x04, 0x20, 0x60, 0x00, 0x00, 0x00};

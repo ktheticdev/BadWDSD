@@ -6,7 +6,7 @@ echo Building Stagex_spu...
 
 export SPU_CC=$PS3DEV/spu/bin/spu-gcc
 
-export SPU_FLAGS="-O2 -Wall -nostdlib -static"
+export SPU_FLAGS="-O2 -Wall -nostdlib -static -ffunction-sections -fdata-sections -Wl,--gc-sections"
 export SPU_STAGEX_FLAGS="-estart"
 
 $SPU_CC $SPU_FLAGS $SPU_STAGEX_FLAGS -T Stagex_spu.ld Stagex_spu.S Stagex_spu.c -o Stagex_spu.elf || exit 1

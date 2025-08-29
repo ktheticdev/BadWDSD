@@ -1,17 +1,30 @@
+FUNC_DEF uint64_t FindLoadMe2(uint64_t addr)
+{
+    const uint32_t *v = (const uint32_t *)addr;
+
+    if (v[0] == 0x4C4F4144 && v[1] == 0x4D455858 && v[2] == 0x58584C4F && v[3] == 0x41444D45)
+        return addr;
+
+    return 0;
+}
+
 FUNC_DEF uint64_t FindLoadMe()
 {
     uint64_t loadme_addr = 0;
 
-    // 4C4F4144 4D455858 58584C4F 41444D45
-
-    for (uint64_t addr = 0; addr < (240 * 1024 * 1024); addr += 4)
+    if (loadme_addr == 0)
+        loadme_addr = FindLoadMe2(0x1000000);
+    if (loadme_addr == 0)
+        loadme_addr = FindLoadMe2(0x8000000);
+    
+    if (loadme_addr == 0)
     {
-        const uint32_t *v = (const uint32_t *)addr;
-
-        if (v[0] == 0x4C4F4144 && v[1] == 0x4D455858 && v[2] == 0x58584C4F && v[3] == 0x41444D45)
+        for (uint64_t addr = 0x2000000; addr < (256 * 1024 * 1024); addr += 0x1000000)
         {
-            loadme_addr = addr;
-            break;
+            loadme_addr = FindLoadMe2(addr);
+
+            if (loadme_addr != 0)
+                break;
         }
     }
 
@@ -58,7 +71,7 @@ FUNC_DEF void Stage4()
             puts("SELF detected\n");
 
             //FUNC_DEF void DecryptLv2Self(void *inDest, const void *inSrc, void* decryptBuf)
-            DecryptLv2Self((void*)0xB000000, (const void*)0xC000000, (void*)0xA000000);
+            DecryptLv2Self((void*)0xB000000, (const void*)0xC000000, (void*)0xA000000, 1);
 
             puts("Loading elf...\n");
 
@@ -98,12 +111,12 @@ FUNC_DEF void Stage4()
 
             uint64_t zelf_magic = *((uint64_t *)file_data);
 
-            if (zelf_magic == 0x5A454C465A454C46)
+            if ((zelf_magic == 0x5A454C465A454C46) || (zelf_magic == 0x5A454C465A454C32))
             {
-                puts("ZELF detected\n");
+                puts("ZELF/ZELF2 detected\n");
 
                 uint64_t sz = (16 * 1024 * 1024);
-                ZelfDecompress(file_data, (void *)0xB000000, &sz);
+                ZelfDecompress(file_data, (void *)0xB000000, &sz, 1);
 
                 puts("Loading elf...\n");
 

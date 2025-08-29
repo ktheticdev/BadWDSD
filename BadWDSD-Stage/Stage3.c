@@ -673,28 +673,6 @@ FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
     uint64_t *stage5_loopCount = (uint64_t *)0x220;
     *stage5_loopCount = 0;
 
-#if 0
-
-    uint64_t *lv1_lv2AreaAddrPtr = (uint64_t *)0x370F20;
-    uint64_t *lv1_lv2AreaSizePtr = (uint64_t *)0x370F28;
-
-    *lv1_lv2AreaAddrPtr = 0x8000000000000000;
-    *lv1_lv2AreaSizePtr = 16;
-
-    //Sc_Rx: after_lv1_lv2AreaHash[0] = 0xfa60f9a679d561e2
-    //Sc_Rx: after_lv1_lv2AreaHash[1] = 0x4766aa39b90084b0
-    //Sc_Rx: after_lv1_lv2AreaHash[2] = 0xb27d2ff00000000
-
-    uint64_t *lv1_lv2AreaHashPtr = (uint64_t *)0x370F30;
-
-    lv1_lv2AreaHashPtr[0] = 0xfa60f9a679d561e2;
-    lv1_lv2AreaHashPtr[1] = 0x4766aa39b90084b0;
-    lv1_lv2AreaHashPtr[2] = 0x0b27d2ff00000000;
-
-    eieio();
-
-#endif
-
     if (laid == 0x1070000002000001)
     {
         {

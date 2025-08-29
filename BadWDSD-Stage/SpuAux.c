@@ -1,7 +1,7 @@
 #pragma GCC push_options
 #pragma GCC optimize("O0")
 
-FUNC_DEF void SpuAux_Uninit(uint64_t spu_id)
+FUNC_DEF void SpuAux_Uninit(uint64_t spu_id, uint64_t spu_old_mfc_sr1)
 {
     //puts("SpuAux_Uninit()\n");
 
@@ -25,10 +25,13 @@ FUNC_DEF void SpuAux_Uninit(uint64_t spu_id)
         }
     }
 
+    SPU_P1_Write64(spu_id, 0x0, spu_old_mfc_sr1);
+    eieio();
+
     //puts("SpuAux_Uninit() done.\n");
 }
 
-FUNC_DEF void SpuAux_Init(uint64_t spu_id)
+FUNC_DEF uint64_t SpuAux_Init(uint64_t spu_id)
 {
     //puts("SpuAux_Init()\n");
 
@@ -36,7 +39,7 @@ FUNC_DEF void SpuAux_Init(uint64_t spu_id)
     //print_decimal(spu_id);
     //puts("\n");
 
-    SpuAux_Uninit(spu_id);
+    SpuAux_Uninit(spu_id, 0x21);
 
     //static const uint32_t SPU_STATUS_RUN_MASK = (1 << 0);
     static const uint32_t SPU_STATUS_ISOLATED_MASK = (1 << 7);
@@ -59,10 +62,19 @@ FUNC_DEF void SpuAux_Init(uint64_t spu_id)
         //puts("iso exit done.\n");
     }
 
+    //
+
+    uint64_t spu_old_mfc_sr1 = SPU_P1_Read64(spu_id, 0x0);
+
+    SPU_P1_Write64(spu_id, 0x0, 0x21);
+    eieio();
+
+    //
+
     uint64_t elfFileAddress = 0;
     uint64_t elfFileSize = 0;
 
-    if (CoreOS_FindFileEntry(0x2401FF21000, "Stagex_spu.elf", &elfFileAddress, &elfFileSize))
+    if (CoreOS_FindFileEntry_Aux("Stagex_spu.elf", &elfFileAddress, &elfFileSize))
     {
         //puts("elfFileAddress = ");
         //print_hex(elfFileAddress);
@@ -104,14 +116,26 @@ FUNC_DEF void SpuAux_Init(uint64_t spu_id)
     //puts("spuReady ok!\n");
 
     //puts("SpuAux_Init() done.\n");
+
+    return spu_old_mfc_sr1;
 }
 
-__attribute__((aligned(8))) struct Stagex_spu_params_s
+struct __attribute__((aligned(8))) Stagex_spu_DMACmd_s
+{
+    uint32_t ls;
+    uint64_t ea;
+
+    uint16_t size;
+
+    uint16_t cmd;
+};
+
+struct __attribute__((aligned(8))) Stagex_spu_context_s
 {
     uint32_t jobType; // 1 = aes128_decrypt_ctr
 };
 
-__attribute__((aligned(8))) struct Stagex_spu_job_aes128_decrypt_ctr_params_s
+struct __attribute__((aligned(8))) Stagex_spu_job_aes128_decrypt_ctr_context_s
 {
     uint8_t key[16];
     uint8_t iv[16];
@@ -124,11 +148,12 @@ __attribute__((aligned(8))) struct Stagex_spu_job_aes128_decrypt_ctr_params_s
 
 // keys[16]
 // iv[16]
-FUNC_DEF void spu_aes128_decrypt_ctr(const uint8_t* in, uint64_t size, uint8_t* out, const uint8_t* keys, const uint8_t* iv)
+FUNC_DEF void spu_aes128_decrypt_ctr(uint64_t spu_id, const uint8_t* in, uint64_t size, uint8_t* out, const uint8_t* keys, const uint8_t* iv)
 {
     puts("spu_aes128_decrypt_ctr()\n");
 
-    uint64_t spu_id = 0;
+    if (size == 0)
+        return;
 
     //SpuAux_Init(spu_id);
 
@@ -138,24 +163,24 @@ FUNC_DEF void spu_aes128_decrypt_ctr(const uint8_t* in, uint64_t size, uint8_t* 
 
     {
         {
-            struct Stagex_spu_params_s params;
-            params.jobType = 1;
+            struct Stagex_spu_context_s context;
+            context.jobType = 1;
 
-            memcpy((void*)SPU_CalcMMIOAddress_LS(spu_id, 0x100), &params, sizeof(params));
+            memcpy((void*)SPU_CalcMMIOAddress_LS(spu_id, 0x100), &context, sizeof(context));
         }
 
         {
-            struct Stagex_spu_job_aes128_decrypt_ctr_params_s params;
+            struct Stagex_spu_job_aes128_decrypt_ctr_context_s job_context;
             
-            memcpy(params.key, keys, 16);
-            memcpy(params.iv, iv, 16);
+            memcpy(job_context.key, keys, 16);
+            memcpy(job_context.iv, iv, 16);
 
-            params.in_ea = (uint64_t)in;
-            params.out_ea = (uint64_t)out;
+            job_context.in_ea = (uint64_t)in;
+            job_context.out_ea = (uint64_t)out;
 
-            params.size = size;
+            job_context.size = size;
 
-            memcpy((void*)SPU_CalcMMIOAddress_LS(spu_id, 0x200), &params, sizeof(params));
+            memcpy((void*)SPU_CalcMMIOAddress_LS(spu_id, 0x200), &job_context, sizeof(job_context));
         }
 
         eieio();
@@ -178,6 +203,174 @@ FUNC_DEF void spu_aes128_decrypt_ctr(const uint8_t* in, uint64_t size, uint8_t* 
     }
 
     //SpuAux_Uninit(spu_id);
+
+    puts("spu_aes128_decrypt_ctr() done.\n");
+}
+
+struct __attribute__((aligned(8))) Stagex_spu_job_zlib_decompress_context_s
+{
+    uint64_t in_ea;
+    uint64_t compressed_size;
+
+    uint64_t out_ea;
+    uint64_t out_decompressed_size; // output written by spu
+
+    // internal context, exposed to ppu for debugging
+
+    uint64_t uzlib_cur_in_ea;
+    uint64_t uzlib_cur_out_ea;
+
+    uint64_t uzlib_in_left;
+
+    int32_t uzlib_cur_status;
+
+    uint32_t uzlib_inTmpBuf; // uint8_t*
+    uint32_t uzlib_inTmpBufSize;
+
+    uint32_t uzlib_outTmpBuf; // uint8_t*
+    uint32_t uzlib_outTmpBufSize;
+
+    uint32_t uzlib_dictTmpBuf; // uint8_t*
+    uint32_t uzlib_dictTmpBufSize;
+};
+
+FUNC_DEF void spu_zlib_decompress(uint64_t spu_id, const void* inCompressedData, uint64_t inCompressedDataSize, void* outCompressedData, uint64_t* outDecompressedDataSize)
+{
+    puts("spu_zlib_decompress()\n");
+
+    // clear jobDone
+    SPU_LS_Write64(spu_id, 0xf08, 0);
+    eieio();
+
+    {
+        {
+            struct Stagex_spu_context_s context;
+            context.jobType = 2;
+
+            memcpy((void*)SPU_CalcMMIOAddress_LS(spu_id, 0x100), &context, sizeof(context));
+        }
+
+        {
+            struct Stagex_spu_job_zlib_decompress_context_s job_context;
+            
+            job_context.in_ea = (uint64_t)inCompressedData;
+            job_context.compressed_size = inCompressedDataSize;
+
+            job_context.out_ea = (uint64_t)outCompressedData;
+
+            memcpy((void*)SPU_CalcMMIOAddress_LS(spu_id, 0x200), &job_context, sizeof(job_context));
+        }
+
+        eieio();
+    }
+
+    // set jobStart
+    SPU_LS_Write64(spu_id, 0xf00, 1);
+    eieio();
+
+    // wait for jobDone to be 1
+    while (SPU_LS_Read64(spu_id, 0xf08) != 1)
+    {
+#if 0
+
+        WaitInMs(1000);
+
+        uint32_t status = SPU_PS_Read32(spu_id, 0x04024);
+
+        puts("status = ");
+        print_hex(status);
+        puts("\n");
+
+        struct Stagex_spu_job_zlib_decompress_context_s job_context;
+        memcpy(&job_context, (const void*)SPU_CalcMMIOAddress_LS(spu_id, 0x200), sizeof(job_context));
+
+        puts("job_context.in_ea = ");
+        print_hex(job_context.in_ea);
+        puts("\n");
+
+        puts("job_context.compressed_size = ");
+        print_decimal(job_context.compressed_size);
+        puts("\n");
+
+        puts("job_context.out_ea = ");
+        print_hex(job_context.out_ea);
+        puts("\n");
+
+        puts("job_context.out_decompressed_size = ");
+        print_decimal(job_context.out_decompressed_size);
+        puts("\n");
+
+        puts("job_context.uzlib_cur_in_ea = ");
+        print_hex(job_context.uzlib_cur_in_ea);
+        puts("\n");
+
+        puts("job_context.uzlib_cur_out_ea = ");
+        print_hex(job_context.uzlib_cur_out_ea);
+        puts("\n");
+
+        puts("job_context.uzlib_in_left = ");
+        print_decimal(job_context.uzlib_in_left);
+        puts("\n");
+
+        puts("job_context.uzlib_cur_status = ");
+        print_decimal((uint32_t)job_context.uzlib_cur_status);
+        puts("\n");
+
+        puts("job_context.uzlib_inTmpBuf = ");
+        print_hex(job_context.uzlib_inTmpBuf);
+        puts("\n");
+
+        puts("job_context.uzlib_inTmpBufSize = ");
+        print_decimal(job_context.uzlib_inTmpBufSize);
+        puts("\n");
+
+        puts("job_context.uzlib_outTmpBuf = ");
+        print_hex(job_context.uzlib_outTmpBuf);
+        puts("\n");
+
+        puts("job_context.uzlib_outTmpBufSize = ");
+        print_decimal(job_context.uzlib_outTmpBufSize);
+        puts("\n");
+
+        puts("job_context.uzlib_dictTmpBuf = ");
+        print_hex(job_context.uzlib_dictTmpBuf);
+        puts("\n");
+
+        puts("job_context.uzlib_dictTmpBufSize = ");
+        print_decimal(job_context.uzlib_dictTmpBufSize);
+        puts("\n");
+
+        struct Stagex_spu_DMACmd_s dmaCmd;
+        memcpy(&dmaCmd, (const void*)SPU_CalcMMIOAddress_LS(spu_id, 0x10), sizeof(dmaCmd));
+
+        puts("dmaCmd.ls = ");
+        print_hex(dmaCmd.ls);
+        puts("\n");
+
+        puts("dmaCmd.ea = ");
+        print_hex(dmaCmd.ea);
+        puts("\n");
+
+        puts("dmaCmd.size = ");
+        print_decimal(dmaCmd.size);
+        puts("\n");
+
+        puts("dmaCmd.cmd = ");
+        print_hex(dmaCmd.cmd);
+        puts("\n");
+
+#endif
+    }
+
+    if (outDecompressedDataSize != NULL)
+    {
+        struct Stagex_spu_job_zlib_decompress_context_s job_context;
+        memcpy(&job_context, (const void*)SPU_CalcMMIOAddress_LS(spu_id, 0x200), sizeof(job_context));
+
+        *outDecompressedDataSize = job_context.out_decompressed_size;
+    }
+
+    puts("spu_zlib_decompress() done.\n");
 }
 
 #pragma GCC pop_options
