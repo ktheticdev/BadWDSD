@@ -42,27 +42,6 @@ FUNC_DEF uint64_t SpuAux_Init(uint64_t spu_id)
     uint64_t spu_old_mfc_sr1 = SPU_P1_Read64(spu_id, 0x0);
     SpuAux_Uninit(spu_id, spu_old_mfc_sr1);
 
-    //static const uint32_t SPU_STATUS_RUN_MASK = (1 << 0);
-    static const uint32_t SPU_STATUS_ISOLATED_MASK = (1 << 7);
-
-    uint32_t status = SPU_PS_Read32(spu_id, 0x04024);
- 
-    if ((status & SPU_STATUS_ISOLATED_MASK) != 0)
-    {
-        //puts("iso exit\n");
-
-        // isolation exit
-        SPU_PS_Write32(spu_id, 0x0401C, 0x2);
-        eieio();
-
-        while ((status & SPU_STATUS_ISOLATED_MASK) != 0)
-        {
-            status = SPU_PS_Read32(spu_id, 0x04024);
-        }
-
-        //puts("iso exit done.\n");
-    }
-
     //
 
     SPU_P1_Write64(spu_id, 0x0, 0x21);

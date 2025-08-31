@@ -3,6 +3,8 @@
 
 //#define STAGE5_LOG_ENABLED 1
 
+#define ZLIB_SPU_ONLY_ENABLED 1
+
 #pragma GCC optimize("align-functions=8")
 #pragma GCC diagnostic ignored "-Wunused-function"
 
@@ -126,6 +128,19 @@ register uint64_t stage_zero asm("r22");
 
 register uint64_t interrupt_depth asm("r26");
 
+struct Stagex_Context_s
+{
+    uint8_t cached_os_bank_indicator;
+    uint8_t cached_qcfw_lite_flag;
+
+    uint8_t stage3_alreadyDone;
+};
+
+FUNC_DEF struct Stagex_Context_s* GetStagexContext()
+{
+    return (struct Stagex_Context_s*)0xA00;
+}
+
 FUNC_DEF uint8_t IsLv1()
 {
     return (is_lv1 == 0x9669) || (is_lv1 == 0x9666) ? 1 : 0;
@@ -134,6 +149,21 @@ FUNC_DEF uint8_t IsLv1()
 FUNC_DEF uint8_t IsStage5()
 {
     return (is_lv1 == 0x9666) ? 1 : 0;
+}
+
+FUNC_DEF uint8_t IsLogEnabled()
+{
+#if !SC_LV1_LOGGING_ENABLED
+    if (IsLv1())
+        return 0;
+#endif
+
+#if !STAGE5_LOG_ENABLED
+    if (IsStage5())
+        return 0;
+#endif
+
+    return 1;
 }
 
 // PPU core init
@@ -329,6 +359,8 @@ FUNC_DEF_NONSTATIC void HW_Init()
     asm volatile("mtlr %0" : "=r"(lr)::);
 }
 
+#if 0
+
 FUNC_DEF void SC_Init()
 {
     // SC Init
@@ -413,6 +445,8 @@ FUNC_DEF void SC_Init()
         //
     }
 }
+
+#endif
 
 FUNC_DEF void dead()
 {
@@ -1072,15 +1106,8 @@ FUNC_DEF void sc_hard_restart()
 
 FUNC_DEF void sc_puts_init()
 {
-#if !SC_LV1_LOGGING_ENABLED
-    if (IsLv1())
+    if (!IsLogEnabled())
         return;
-#endif
-
-#if !STAGE5_LOG_ENABLED
-    if (IsStage5())
-        return;
-#endif
 
 #if SC_PUTS_BUFFER_ENABLED
     uint64_t *sc_puts_buflen = (uint64_t *)0xD000000;
@@ -1093,6 +1120,9 @@ FUNC_DEF void sc_puts_init()
 
 FUNC_DEF void sc_puts(const char *str)
 {
+    if (!IsLogEnabled())
+        return;
+
     uint64_t len = strlen(str);
 
     if (len == 0)
@@ -1180,32 +1210,57 @@ FUNC_DEF uint8_t sc_read_os_bank_indicator()
     return outpkt.data[4];
 }
 
+FUNC_DEF uint8_t get_os_bank_indicator()
+{
+    if (!IsLv1())
+        return sc_read_os_bank_indicator();
+
+    return GetStagexContext()->cached_os_bank_indicator;
+}
+
+FUNC_DEF uint8_t sc_read_qcfw_lite_flag()
+{
+    struct sc_packet_s pkt;
+
+    pkt.service_id = 0x14;
+    pkt.communication_tag = 1;
+
+    pkt.payload_size = 4;
+    pkt.data[0] = 0x20;
+
+    pkt.data[1] = 0x20;  // block id (0x3000)
+    pkt.data[2] = 0x0; // offset (0x3000)
+    pkt.data[3] = 0x1;  // size
+
+    struct sc_packet_s outpkt;
+    sc_send_packet(&pkt, &outpkt);
+
+    if (outpkt.payload_size != 5)
+        dead();
+
+    return outpkt.data[4];
+}
+
+FUNC_DEF uint8_t get_qcfw_lite_flag()
+{
+    if (!IsLv1())
+        return sc_read_qcfw_lite_flag();
+
+    return GetStagexContext()->cached_qcfw_lite_flag;
+}
+
 FUNC_DEF void puts(const char *str)
 {
-#if !SC_LV1_LOGGING_ENABLED
-    if (IsLv1())
+    if (!IsLogEnabled())
         return;
-#endif
-
-#if !STAGE5_LOG_ENABLED
-    if (IsStage5())
-        return;
-#endif
 
     sc_puts(str);
 }
 
 FUNC_DEF void print_decimal(uint64_t v)
 {
-#if !SC_LV1_LOGGING_ENABLED
-    if (IsLv1())
+    if (!IsLogEnabled())
         return;
-#endif
-
-#if !STAGE5_LOG_ENABLED
-    if (IsStage5())
-        return;
-#endif
 
     char charArr[16];
 
@@ -1274,15 +1329,8 @@ FUNC_DEF void print_decimal(uint64_t v)
 
 FUNC_DEF void print_hex(uint64_t v)
 {
-#if !SC_LV1_LOGGING_ENABLED
-    if (IsLv1())
+    if (!IsLogEnabled())
         return;
-#endif
-
-#if !STAGE5_LOG_ENABLED
-    if (IsStage5())
-        return;
-#endif
 
     char charArr[16];
 
@@ -1354,6 +1402,16 @@ FUNC_DEF void print_hex(uint64_t v)
     outBuf[curOutBufLen] = 0;
     puts(outBuf);
 }
+
+#if SC_LV1_LOGGING_ENABLED
+#define lv1_puts puts
+#define lv1_print_decimal print_decimal
+#define lv1_print_hex print_hex
+#else
+#define lv1_puts(...)
+#define lv1_print_decimal(...)
+#define lv1_print_hex(...)
+#endif
 
 FUNC_DEF void dead_beep()
 {
@@ -1798,7 +1856,7 @@ FUNC_DEF uint8_t CoreOS_FindFileEntry(uint64_t startAddress, const char *fileNam
 
 FUNC_DEF uint8_t CoreOS_FindFileEntry_CurrentBank(const char *fileName, uint64_t *outFileAddress, uint64_t *outFileSize)
 {
-    uint8_t os_bank_indicator = sc_read_os_bank_indicator();
+    uint8_t os_bank_indicator = get_os_bank_indicator();
 
 #if 0
 
@@ -1821,6 +1879,30 @@ FUNC_DEF uint8_t CoreOS_FindFileEntry_CurrentBank(const char *fileName, uint64_t
 FUNC_DEF uint8_t CoreOS_FindFileEntry_Aux(const char *fileName, uint64_t *outFileAddress, uint64_t *outFileSize)
 {
     return CoreOS_FindFileEntry(0x2401FF21000, fileName, outFileAddress, outFileSize);
+}
+
+FUNC_DEF uint16_t CoreOS_CurrentBank_GetFWVersion()
+{
+    uint64_t addr;
+    
+    if (!CoreOS_FindFileEntry_CurrentBank("sdk_version", &addr, NULL))
+        return 0;
+
+    const char* str = (const char*)addr;
+
+    uint16_t ver = 0;
+
+    // 492.000
+    ver += ((str[0] - '0') * 100);
+    ver += ((str[1] - '0') * 10);
+    ver += (str[2] - '0');
+
+    return ver;
+}
+
+FUNC_DEF uint8_t CoreOS_CurrentBank_IsqCFW()
+{
+    return CoreOS_FindFileEntry_CurrentBank("qcfw", NULL, NULL);
 }
 
 struct ElfHeader_s
@@ -2276,12 +2358,16 @@ FUNC_DEF void DecryptLv0Self(void *inDest, const void *inSrc, uint8_t use_spu)
     puts("DecryptLv0Self() done.\n");
 }
 
+#if !ZLIB_SPU_ONLY_ENABLED
+
 #include "tinf/tinf.h"
 
 #include "tinf/adler32.c"
 #include "tinf/crc32.c"
 #include "tinf/tinflate.c"
 #include "tinf/tinfzlib.c"
+
+#endif
 
 struct ZelfHeader_s
 {
@@ -2379,8 +2465,19 @@ FUNC_DEF void ZelfDecompress(uint64_t zelfFileAddress, void *destAddress, uint64
     }
     else
     {
+
+#if !ZLIB_SPU_ONLY_ENABLED
+
         decompress_result = tinf_zlib_uncompress(
             destAddress, &xxx, compressed_data, (uint32_t)compressed_size);
+
+#else
+
+        puts("PPU zlib disabled!\n");
+        dead_beep();
+
+#endif
+
     }
 
     puts("decompress_result = ");
@@ -2709,10 +2806,21 @@ FUNC_DEF void DecryptLv2Self(void *inDest, const void *inSrc, void* decryptBuf, 
             }
             else
             {
+                
+#if !ZLIB_SPU_ONLY_ENABLED
+
                 res = tinf_zlib_uncompress(
                     (void*)out_addr, &sz, 
                     decryptBuf, (uint32_t)h->segment_size
                 );
+
+#else
+
+                puts("PPU zlib disabled!\n");
+                dead_beep();
+
+#endif
+
             }
 
             if ((res != 0) || (sz != phdr->p_filesz))

@@ -568,8 +568,6 @@ int aes_decrypt_ccm(const BYTE ciphertext[], WORD ciphertext_len, const BYTE ass
 	return(TRUE);
 }
 
-#endif
-
 // Creates the first counter block. First byte is flags, then the nonce, then the incremented part.
 void ccm_prepare_first_ctr_blk(BYTE counter[], const BYTE nonce[], int nonce_len, int payload_len_store_size)
 {
@@ -617,6 +615,8 @@ void ccm_format_payload_data(BYTE buf[], int *end_of_buf, const BYTE payload[], 
 	memset(&buf[*end_of_buf], 0, pad);
 	*end_of_buf += pad;
 }
+
+#endif
 
 /*******************
 * AES

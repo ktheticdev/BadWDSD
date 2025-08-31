@@ -1,5 +1,69 @@
 #undef ENTRY_WAIT_IN_MS
 
+FUNC_DEF void ApplyLv1Diff(uint64_t lv1DiffFileAddress, uint8_t verifyOrig)
+{
+    puts("ApplyLv1Diff()\n");
+
+    uint64_t curAddress = lv1DiffFileAddress;
+
+    uint32_t diffCount = *((uint32_t *)curAddress);
+    curAddress += 4;
+
+    puts("diffCount = ");
+    print_decimal(diffCount);
+    puts("\n");
+
+    for (uint32_t i = 0; i < diffCount; ++i)
+    {
+        uint32_t addr = *((uint32_t *)curAddress);
+        curAddress += 4;
+
+        uint32_t value = *((uint32_t *)curAddress);
+        curAddress += 4;
+
+        uint8_t origVal = (uint8_t)(value >> 8);
+        uint8_t newVal = (uint8_t)(value & 0xFF);
+
+#if 0
+        puts("addr = ");
+        print_hex(addr);
+
+        puts(", origVal = ");
+        print_hex(origVal);
+
+        puts(", newVal = ");
+        print_hex(newVal);
+
+        puts("\n");
+#endif
+
+        if (verifyOrig)
+        {
+            uint8_t curVal = *((uint8_t *)(uint64_t)addr);
+
+            if (curVal != origVal)
+            {
+                puts("verifyOrig failed at addr = ");
+                print_hex(addr);
+
+                puts(", curVal = ");
+                print_hex(curVal);
+
+                puts(", origVal = ");
+                print_hex(origVal);
+                puts("\n");
+
+                dead_beep();
+            }
+        }
+
+        *((uint8_t *)(uint64_t)addr) = newVal;
+    }
+
+    eieio();
+    puts("ApplyLv1Diff() done.\n");
+}
+
 FUNC_DEF void Stage2()
 {
     puts("BadWDSD Stage2 by Kafuu(aomsin2526)\n");
@@ -9,6 +73,11 @@ FUNC_DEF void Stage2()
     puts(" ");
     puts(__TIME__);
     puts(")\n");
+
+    uint8_t isqCFW = CoreOS_CurrentBank_IsqCFW();
+    uint8_t qcfw_lite_flag = get_qcfw_lite_flag();
+
+    uint16_t fwVersion = CoreOS_CurrentBank_GetFWVersion();
 
     {
         uint64_t lv1FileAddress;
@@ -71,12 +140,35 @@ FUNC_DEF void Stage2()
         }
 
         {
-            puts("Searching for lv1.diff...\n");
-
-            uint64_t lv1DiffFileAddress;
+            uint64_t lv1DiffFileAddress = 0;
             uint64_t lv1DiffFileSize;
 
-            if (CoreOS_FindFileEntry_CurrentBank("lv1.diff", &lv1DiffFileAddress, &lv1DiffFileSize))
+            if (!isqCFW && (qcfw_lite_flag == 0x1))
+            {
+                if (fwVersion == 492)
+                {
+                    puts("Searching for qcfwlite492cex_lv1.diff...\n");
+                    CoreOS_FindFileEntry_Aux("qcfwlite492cex_lv1.diff", &lv1DiffFileAddress, &lv1DiffFileSize);
+                }
+                else
+                {
+                    puts("Current firmware doesn't support qCFW lite!\n");
+                    dead_beep();
+                }
+
+                if (lv1DiffFileAddress == 0)
+                {
+                    puts("File not found!\n");
+                    dead_beep();
+                }
+            }
+            else
+            {
+                puts("Searching for lv1.diff...\n");
+                CoreOS_FindFileEntry_CurrentBank("lv1.diff", &lv1DiffFileAddress, &lv1DiffFileSize);
+            }
+
+            if (lv1DiffFileAddress != 0)
             {
                 puts("lv1DiffFileAddress = ");
                 print_hex(lv1DiffFileAddress);
@@ -86,37 +178,7 @@ FUNC_DEF void Stage2()
 
                 puts("\n");
 
-                {
-                    uint64_t curAddress = lv1DiffFileAddress;
-
-                    uint32_t diffCount = *((uint32_t *)curAddress);
-                    curAddress += 4;
-
-                    puts("diffCount = ");
-                    print_decimal(diffCount);
-                    puts("\n");
-
-                    for (uint32_t i = 0; i < diffCount; ++i)
-                    {
-                        uint32_t addr = *((uint32_t *)curAddress);
-                        curAddress += 4;
-
-                        uint8_t value = (uint8_t)(*((uint32_t *)curAddress));
-                        curAddress += 4;
-
-#if 0
-                        puts("addr = ");
-                        print_hex(addr);
-
-                        puts(", value = ");
-                        print_hex(value);
-
-                        puts("\n");
-#endif
-
-                        *((uint8_t *)(uint64_t)addr) = value;
-                    }
-                }
+                ApplyLv1Diff(lv1DiffFileAddress, 1);
             }
             else
                 puts("File not found!\n");
@@ -222,6 +284,24 @@ FUNC_DEF void Stage2()
         }
 
 #endif
+
+        {
+            struct Stagex_Context_s* ctx = GetStagexContext();
+
+            ctx->cached_os_bank_indicator = sc_read_os_bank_indicator();
+
+            puts("cached_os_bank_indicator = ");
+            print_hex(ctx->cached_os_bank_indicator);
+            puts("\n");
+
+            ctx->cached_qcfw_lite_flag = sc_read_qcfw_lite_flag();
+
+            puts("cached_qcfw_lite_flag = ");
+            print_hex(ctx->cached_qcfw_lite_flag);
+            puts("\n");
+
+            ctx->stage3_alreadyDone = 0;
+        }
 
         puts("Booting lv1...\n");
 

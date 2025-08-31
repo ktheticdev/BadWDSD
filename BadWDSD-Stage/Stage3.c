@@ -145,25 +145,25 @@ FUNC_DEF uint64_t FindHvcallTable()
 
 FUNC_DEF void Stage3()
 {
-    puts("BadWDSD Stage3 by Kafuu(aomsin2526)\n");
+    lv1_puts("BadWDSD Stage3 by Kafuu(aomsin2526)\n");
 
-    puts("(Build Date: ");
-    puts(__DATE__);
-    puts(" ");
-    puts(__TIME__);
-    puts(")\n");
+    lv1_puts("(Build Date: ");
+    lv1_puts(__DATE__);
+    lv1_puts(" ");
+    lv1_puts(__TIME__);
+    lv1_puts(")\n");
 
     {
         uint64_t hvcallTable = FindHvcallTable();
 
         if (hvcallTable != 0)
         {
-            puts("hvcallTable = ");
-            print_hex(hvcallTable);
-            puts("\n");
+            lv1_puts("hvcallTable = ");
+            lv1_print_hex(hvcallTable);
+            lv1_puts("\n");
 
             {
-                puts("Installing hvcall peek64(34)\n");
+                lv1_puts("Installing hvcall peek64(34)\n");
 
                 uint64_t code_addr = 0x130;
                 uint64_t *code = (uint64_t *)code_addr;
@@ -174,7 +174,7 @@ FUNC_DEF void Stage3()
             }
 
             {
-                puts("Installing hvcall poke64(35)\n");
+                lv1_puts("Installing hvcall poke64(35)\n");
 
                 uint64_t code_addr = 0x140;
                 uint64_t *code = (uint64_t *)code_addr;
@@ -186,7 +186,7 @@ FUNC_DEF void Stage3()
             }
 
             {
-                puts("Installing hvcall exec(36)\n");
+                lv1_puts("Installing hvcall exec(36)\n");
 
                 uint64_t code_addr = 0x150;
                 uint64_t *code = (uint64_t *)code_addr;
@@ -204,7 +204,7 @@ FUNC_DEF void Stage3()
             }
 
             {
-                puts("Installing hvcall peek32(37)\n");
+                lv1_puts("Installing hvcall peek32(37)\n");
 
                 uint64_t code_addr = 0x180;
                 uint64_t *code = (uint64_t *)code_addr;
@@ -215,7 +215,7 @@ FUNC_DEF void Stage3()
             }
 
             {
-                puts("Installing hvcall poke32(38)\n");
+                lv1_puts("Installing hvcall poke32(38)\n");
 
                 uint64_t code_addr = 0x190;
                 uint64_t *code = (uint64_t *)code_addr;
@@ -228,14 +228,14 @@ FUNC_DEF void Stage3()
         }
         else
         {
-            puts("hvcallTable not found!\n");
+            lv1_puts("hvcallTable not found!\n");
             dead_beep();
         }
     }
 
     {
         {
-            puts("Patching hvcall 114...\n");
+            lv1_puts("Patching hvcall 114...\n");
 
             {
                 uint64_t newval = 0x6000000048000028;
@@ -249,7 +249,7 @@ FUNC_DEF void Stage3()
         }
 
         {
-            puts("Patching lv1 182/183\n");
+            lv1_puts("Patching lv1 182/183\n");
 
             uint64_t patches[4];
 
@@ -264,7 +264,7 @@ FUNC_DEF void Stage3()
         // HTAB
 
         {
-            puts("Patching HTAB write protection\n");
+            lv1_puts("Patching HTAB write protection\n");
 
             uint64_t old;
             lv1_read(0x0AC594, 8, &old);
@@ -277,7 +277,7 @@ FUNC_DEF void Stage3()
         // Repo nodes
 
         {
-            puts("Patching Repo nodes modify\n");
+            lv1_puts("Patching Repo nodes modify\n");
 
             // poke_lv1(0x2E4E28 +  0, 0xE81E0020E95E0028ULL);
             // poke_lv1(0x2E4E28 +  8, 0xE91E0030E8FE0038ULL);
@@ -399,7 +399,7 @@ FUNC_DEF void Stage3()
     }
 
     {
-        puts("Patching lv2_kernel.self LPAR initial size\n");
+        lv1_puts("Patching lv2_kernel.self LPAR initial size\n");
 
         const char *searchData = "/flh/os/lv2_kernel.self";
         uint64_t searchDataSize = strlen(searchData) + 1;
@@ -410,9 +410,9 @@ FUNC_DEF void Stage3()
                 if (memcmp((void *)i, searchData, searchDataSize))
                     continue;
 
-                puts("addr = ");
-                print_hex(i);
-                puts("\n");
+                lv1_puts("addr = ");
+                lv1_print_hex(i);
+                lv1_puts("\n");
 
                 for (uint64_t i2 = 0; i2 < 0x200; i2 += 1)
                 {
@@ -421,9 +421,9 @@ FUNC_DEF void Stage3()
                     if (*vv != 0x18)
                         continue;
 
-                    puts("x = ");
-                    print_hex(i2); // 0x107
-                    puts("\n");
+                    lv1_puts("x = ");
+                    lv1_print_hex(i2); // 0x107
+                    lv1_puts("\n");
 
                     *vv = 0x1B; // 128M
                 }
@@ -433,7 +433,7 @@ FUNC_DEF void Stage3()
 
     eieio();
 
-    puts("Stage3 done.\n");
+    lv1_puts("Stage3 done.\n");
 }
 
 FUNC_DEF uint8_t FindLv2(uint64_t *outFoundAddr)
@@ -442,12 +442,12 @@ FUNC_DEF uint8_t FindLv2(uint64_t *outFoundAddr)
                             0xA6, 0x7C, 0xA0, 0x00, 0xA6, 0x60, 0xA5, 0x00, 0x30, 0x7C, 0xBB, 0x03, 0xA6, 0x3C, 0xA0, 0x80, 0x00, 0x60, 0xA5,
                             0x00, 0x00, 0x78, 0xA5, 0x07, 0xC6, 0x64, 0xA5, 0x00, 0x00, 0x60, 0xA5, 0x08, 0x3C, 0x7C, 0xBA, 0x03, 0xA6, 0x4C, 0x00, 0x00, 0x24};
 
-    for (uint64_t addr = 0x0; addr < (250 * 1024 * 1024); addr += 0x800)
+    for (uint64_t addr = 0x1000000; addr < (250 * 1024 * 1024); addr += 0x1000000)
     {
-        if (!memcmp((const void *)addr, searchData, sizeof(searchData)))
+        if (!memcmp((const void *)(addr + 0x800), searchData, sizeof(searchData)))
         {
             if (outFoundAddr != NULL)
-                *outFoundAddr = (addr - 0x800);
+                *outFoundAddr = addr;
 
             return 1;
         }
@@ -456,222 +456,182 @@ FUNC_DEF uint8_t FindLv2(uint64_t *outFoundAddr)
     return 0;
 }
 
-FUNC_DEF void ApplyLv2Diff(uint64_t lv2AreaAddr, uint8_t useNewVal)
+FUNC_DEF void ApplyLv2Diff2(uint64_t lv2DiffFileAddress, uint64_t lv2AreaAddr, uint8_t useNewVal, uint8_t verifyOrig)
 {
-    puts("ApplyLv2Diff()\n");
+    lv1_puts("ApplyLv2Diff2()\n");
 
-    puts("lv2AreaAddr = ");
-    print_hex(lv2AreaAddr);
-    puts("\n");
+    lv1_puts("lv2AreaAddr = ");
+    lv1_print_hex(lv2AreaAddr);
+    lv1_puts("\n");
 
     {
-        puts("Searching for lv2_kernel.diff...\n");
+        uint64_t curAddress = lv2DiffFileAddress;
 
-        uint64_t lv2DiffFileAddress;
-        uint64_t lv2DiffFileSize;
+        uint32_t diffCount = *((uint32_t *)curAddress);
+        curAddress += 4;
 
-        if (CoreOS_FindFileEntry_CurrentBank("lv2_kernel.diff", &lv2DiffFileAddress, &lv2DiffFileSize))
+        lv1_puts("diffCount = ");
+        lv1_print_decimal(diffCount);
+        lv1_puts("\n");
+
+        for (uint32_t i = 0; i < diffCount; ++i)
         {
-            puts("lv2DiffFileAddress = ");
-            print_hex(lv2DiffFileAddress);
+            uint32_t addr = *((uint32_t *)curAddress);
+            curAddress += 4;
 
-            puts(", lv2DiffFileSize = ");
-            print_decimal(lv2DiffFileSize);
+            uint32_t value = *((uint32_t *)curAddress);
+            curAddress += 4;
 
-            puts("\n");
-
-            {
-                uint64_t curAddress = lv2DiffFileAddress;
-
-                uint32_t diffCount = *((uint32_t *)curAddress);
-                curAddress += 4;
-
-                puts("diffCount = ");
-                print_decimal(diffCount);
-                puts("\n");
-
-                for (uint32_t i = 0; i < diffCount; ++i)
-                {
-                    uint32_t addr = *((uint32_t *)curAddress);
-                    curAddress += 4;
-
-                    uint32_t value = (*((uint32_t *)curAddress));
-                    curAddress += 4;
-
-                    uint8_t newVal = (uint8_t)(value >> 8);
-                    uint8_t origVal = (uint8_t)(value & 0xFF);
+            uint8_t newVal = (uint8_t)(value >> 8);
+            uint8_t origVal = (uint8_t)(value & 0xFF);
 
 #if 0
-                    puts("addr = ");
-                    print_hex(addr);
-        
-                    puts(", newVal = ");
-                    print_hex(newVal);
-        
-                    puts(", origVal = ");
-                    print_hex(origVal);
+            lv1_puts("addr = ");
+            lv1_print_hex(addr);
 
-                    puts("\n");
+            lv1_puts(", newVal = ");
+            lv1_print_hex(newVal);
+
+            lv1_puts(", origVal = ");
+            lv1_print_hex(origVal);
+
+            lv1_puts("\n");
 #endif
 
-                    *((uint8_t *)(uint64_t)(addr + lv2AreaAddr)) = useNewVal ? newVal : origVal;
+            if (verifyOrig)
+            {
+                uint8_t curVal = *((uint8_t *)(uint64_t)(addr + lv2AreaAddr));
+
+                if (curVal != origVal)
+                {
+                    lv1_puts("verifyOrig failed at addr = ");
+                    lv1_print_hex(addr);
+
+                    lv1_puts(", curVal = ");
+                    lv1_print_hex(curVal);
+
+                    lv1_puts(", origVal = ");
+                    lv1_print_hex(origVal);
+                    lv1_puts("\n");
+
+                    dead_beep();
                 }
             }
+
+            *((uint8_t *)(uint64_t)(addr + lv2AreaAddr)) = useNewVal ? newVal : origVal;
         }
-        else
-            puts("File not found!\n");
     }
 
     eieio();
-    puts("ApplyLv2Diff() done.\n");
+    lv1_puts("ApplyLv2Diff2() done.\n");
+}
+
+FUNC_DEF void ApplyLv2Diff(uint64_t lv2AreaAddr, uint8_t useNewVal, uint8_t verifyOrig)
+{
+    lv1_puts("ApplyLv2Diff()\n");
+
+    uint8_t isqCFW = CoreOS_CurrentBank_IsqCFW();
+    uint8_t qcfw_lite_flag = get_qcfw_lite_flag();
+
+    uint16_t fwVersion = CoreOS_CurrentBank_GetFWVersion();
+
+    {
+        uint64_t lv2DiffFileAddress = 0;
+        uint64_t lv2DiffFileSize;
+
+        if (!isqCFW && (qcfw_lite_flag == 0x1))
+        {
+            if (fwVersion == 492)
+            {
+                lv1_puts("Searching for qcfwlite492cex_lv2_kernel.zdiff...\n");
+                CoreOS_FindFileEntry_Aux("qcfwlite492cex_lv2_kernel.zdiff", &lv2DiffFileAddress, &lv2DiffFileSize);
+            }
+            else
+            {
+                lv1_puts("Current firmware doesn't support qCFW lite!\n");
+                dead_beep();
+            }
+
+            if (lv2DiffFileAddress == 0)
+            {
+                lv1_puts("File not found!\n");
+                dead_beep();
+            }
+        }
+        else
+        {
+            lv1_puts("Searching for lv2_kernel.diff...\n");
+            CoreOS_FindFileEntry_CurrentBank("lv2_kernel.diff", &lv2DiffFileAddress, &lv2DiffFileSize);
+
+            if (lv2DiffFileAddress == 0)
+            {
+                lv1_puts("Searching for lv2_kernel.zdiff...\n");
+                CoreOS_FindFileEntry_CurrentBank("lv2_kernel.zdiff", &lv2DiffFileAddress, &lv2DiffFileSize);
+            }
+        }
+
+        if (lv2DiffFileAddress != 0)
+        {
+            lv1_puts("lv2DiffFileAddress = ");
+            lv1_print_hex(lv2DiffFileAddress);
+
+            lv1_puts(", lv2DiffFileSize = ");
+            lv1_print_decimal(lv2DiffFileSize);
+
+            lv1_puts("\n");
+
+            uint64_t zelf_magic = *((uint64_t *)lv2DiffFileAddress);
+
+            if ((zelf_magic == 0x5A454C465A454C46) || (zelf_magic == 0x5A454C465A454C32))
+            {
+                lv1_puts("ZELF/ZELF2 detected\n");
+
+                uint64_t sz = (16 * 1024 * 1024);
+                ZelfDecompress(lv2DiffFileAddress, (void *)0xB000000, &sz, 1);
+
+                lv2DiffFileAddress = 0xB000000;
+                lv2DiffFileSize = sz;
+
+                lv1_puts("lv2DiffFileAddress = ");
+                lv1_print_hex(lv2DiffFileAddress);
+
+                lv1_puts(", lv2DiffFileSize = ");
+                lv1_print_decimal(lv2DiffFileSize);
+
+                lv1_puts("\n");
+            }
+
+            ApplyLv2Diff2(lv2DiffFileAddress, lv2AreaAddr, useNewVal, verifyOrig);
+        }
+        else
+            lv1_puts("File not found!\n");
+    }
+
+    lv1_puts("ApplyLv2Diff() done.\n");
+}
+
+FUNC_DEF void EnableLoadCobraFromUSB(uint64_t lv2AreaAddr)
+{
+    lv1_puts("Enabling Load Cobra from USB...\n");
+
+    volatile uint8_t* enableLoadCobraFromUSB = (volatile uint8_t*)(lv2AreaAddr + 0x30);
+    *enableLoadCobraFromUSB = 1;
+    eieio();
+
+    sc_triple_beep();
 }
 
 #pragma GCC push_options
 // #pragma GCC optimize("O0")
 
-#if 0
-
-FUNC_DEF void RegenLv2AreaHash(uint64_t spu_id)
-{
-    puts("RegenLv2AreaHash()\n");
-
-    puts("spu_id = ");
-    print_decimal(spu_id);
-    puts("\n");
-
-    uint64_t lv2AreaAddrRa = 0x0;
-
-    if (!FindLv2(&lv2AreaAddrRa))
-    {
-        puts("lv2 area not found!\n");
-        return;
-    }
-
-    puts("lv2AreaAddrRa = ");
-    print_hex(lv2AreaAddrRa);
-    puts("\n");
-
-    uint64_t *lv1_lv2AreaAddrPtr = (uint64_t *)0x370F20; // 0x8000000000000000
-    uint64_t *lv1_lv2AreaSizePtr = (uint64_t *)0x370F28; // 0x352230
-
-    uint64_t *lv1_lv2AreaHashPtr = (uint64_t *)0x370F30;
-
-    puts("before_lv1_lv2AreaAddr = ");
-    print_hex(*lv1_lv2AreaAddrPtr);
-
-    puts(", before_lv1_lv2AreaSize = ");
-    print_hex(*lv1_lv2AreaSizePtr);
-
-    puts("\n");
-
-    puts("before_lv1_lv2AreaHash[0] = ");
-    print_hex(lv1_lv2AreaHashPtr[0]);
-    puts("\n");
-
-    puts("before_lv1_lv2AreaHash[1] = ");
-    print_hex(lv1_lv2AreaHashPtr[1]);
-    puts("\n");
-
-    puts("before_lv1_lv2AreaHash[2] = ");
-    print_hex(lv1_lv2AreaHashPtr[2]);
-    puts("\n");
-
-    {
-        puts("Searching for lv2hashgen.elf...\n");
-
-        uint64_t lv2HashGenFileAddress;
-        uint64_t lv2HashGenFileSize;
-
-        if (CoreOS_FindFileEntry_CurrentBank("lv2hashgen.elf", &lv2HashGenFileAddress, &lv2HashGenFileSize))
-        {
-            puts("lv2HashGenFileAddress = ");
-            print_hex(lv2HashGenFileAddress);
-
-            puts(", lv2HashGenFileSize = ");
-            print_decimal(lv2HashGenFileSize);
-
-            puts("\n");
-
-            // relocation off
-
-            uint64_t old_mfc_sr1 = SPU_P1_Read64(spu_id, 0x0);
-            SPU_P1_Write64(spu_id, 0x0, (old_mfc_sr1 & 0xFFFFFFFFFFFFFFEF));
-
-            //
-
-            LoadElfSpu(lv2HashGenFileAddress, spu_id);
-            eieio();
-
-            //
-
-            SPU_LS_Write64(spu_id, 0x3A0F0, lv2AreaAddrRa);
-            SPU_LS_Write64(spu_id, 0x3A0F8, *lv1_lv2AreaSizePtr);
-
-            eieio();
-
-            //
-
-            // SPU_RUNCNTL = 0x1
-            SPU_PS_Write32(spu_id, 0x0401C, 0x1);
-            eieio();
-
-            //
-
-            puts("Waiting for spu start/stop...\n");
-
-            uint32_t status = SPU_PS_Read32(spu_id, 0x04024);
-
-            while ((status & 0xFF0000) != 0x690000) // 0x690002
-            {
-                status = SPU_PS_Read32(spu_id, 0x04024);
-            }
-
-            //
-
-            // restore MFC_SR1
-            SPU_P1_Write64(spu_id, 0x0, old_mfc_sr1);
-            eieio();
-
-            //
-
-            lv1_lv2AreaHashPtr[0] = SPU_LS_Read64(spu_id, 0x39010);
-            lv1_lv2AreaHashPtr[1] = SPU_LS_Read64(spu_id, 0x39018);
-            lv1_lv2AreaHashPtr[2] = SPU_LS_Read64(spu_id, 0x39020);
-
-            //
-        }
-        else
-            puts("File not found!\n");
-    }
-
-    puts("after_lv1_lv2AreaHash[0] = ");
-    print_hex(lv1_lv2AreaHashPtr[0]);
-    puts("\n");
-
-    puts("after_lv1_lv2AreaHash[1] = ");
-    print_hex(lv1_lv2AreaHashPtr[1]);
-    puts("\n");
-
-    puts("after_lv1_lv2AreaHash[2] = ");
-    print_hex(lv1_lv2AreaHashPtr[2]);
-    puts("\n");
-
-    puts("RegenLv2AreaHash done.\n");
-}
-
-#endif
-
 FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
 {
-    puts("Stage3_AuthLv2(), laid = ");
-    print_hex(laid);
-    puts("\n");
+    lv1_puts("Stage3_AuthLv2(), laid = ");
+    lv1_print_hex(laid);
+    lv1_puts("\n");
 
     // ps2 = 0x1020000003000001
     // ps3 = 0x1070000002000001
-
-    uint64_t *stage5_loopCount = (uint64_t *)0x220;
-    *stage5_loopCount = 0;
 
     if (laid == 0x1070000002000001)
     {
@@ -680,75 +640,31 @@ FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
 
             if (!FindLv2(&lv2AreaAddrRa))
             {
-                puts("lv2 area not found!\n");
+                lv1_puts("lv2 area not found!\n");
                 return;
             }
 
-            puts("lv2AreaAddrRa = ");
-            print_hex(lv2AreaAddrRa);
-            puts("\n");
+            lv1_puts("lv2AreaAddrRa = ");
+            lv1_print_hex(lv2AreaAddrRa);
+            lv1_puts("\n");
 
-            ApplyLv2Diff(lv2AreaAddrRa, 1);
+            ApplyLv2Diff(lv2AreaAddrRa, 1, 1);
+
+            {
+                uint8_t qcfw_lite_flag = get_qcfw_lite_flag();
+
+                if (qcfw_lite_flag == 0x1)
+                    EnableLoadCobraFromUSB(lv2AreaAddrRa);
+            }
 
             eieio();
         }
-
-        // RegenLv2AreaHash(6);
-        // eieio();
     }
 
-    puts("Stage3_AuthLv2() done.\n");
+    lv1_puts("Stage3_AuthLv2() done.\n");
 }
 
 #pragma GCC pop_options
-
-FUNC_DEF void Stage3_Debug()
-{
-    uint64_t *isActive = (uint64_t *)0x228;
-
-    if (*isActive == 0)
-        return;
-
-    puts("Stage3 debug!!!\n");
-
-    uint32_t status = SPU_PS_Read32(4, 0x04024);
-    puts("status = ");
-    print_hex(status);
-
-    uint32_t npc = SPU_PS_Read32(4, 0x04034);
-    puts(", npc = ");
-    print_hex(npc);
-
-    uint64_t lslr = SPU_P2_Read64(4, 0x04058);
-    puts(", lslr = ");
-    print_hex(lslr);
-
-    uint32_t mbox = SPU_PS_Read32(4, 0x04004);
-    puts(", mbox = ");
-    print_hex(mbox);
-
-    {
-        uint64_t x = SPU_LS_Read64(4, 0x37300);
-        puts(", 0x37300 = ");
-        print_hex(x);
-    }
-
-    {
-        uint64_t x = SPU_LS_Read64(4, 0x39000);
-        puts(", 0x39000 = ");
-        print_hex(x);
-    }
-
-    puts("\n");
-
-    {
-        uint64_t x = SPU_LS_Read64(4, 0x12C00);
-        puts("0x12C00 = ");
-        print_hex(x);
-    }
-
-    puts("\n");
-}
 
 #pragma GCC push_options
 #pragma GCC optimize("O0")
@@ -784,11 +700,11 @@ __attribute__((section("main3"))) void stage3_main()
         {
             sc_puts_init();
 
-            puts("poke64 addr = ");
-            print_hex(r6_2);
-            puts(", value = ");
-            print_hex(r7_2);
-            puts("\n");
+            lv1_puts("poke64 addr = ");
+            lv1_print_hex(r6_2);
+            lv1_puts(", value = ");
+            lv1_print_hex(r7_2);
+            lv1_puts("\n");
         }
 
         return;
@@ -808,11 +724,11 @@ __attribute__((section("main3"))) void stage3_main()
         {
             sc_puts_init();
 
-            puts("poke32 addr = ");
-            print_hex(r6_2);
-            puts(", value = ");
-            print_hex(r7_2);
-            puts("\n");
+            lv1_puts("poke32 addr = ");
+            lv1_print_hex(r6_2);
+            lv1_puts(", value = ");
+            lv1_print_hex(r7_2);
+            lv1_puts("\n");
         }
 
         return;
@@ -832,11 +748,11 @@ __attribute__((section("main3"))) void stage3_main()
         {
             sc_puts_init();
 
-            puts("poke8 addr = ");
-            print_hex(r6_2);
-            puts(", value = ");
-            print_hex(r7_2);
-            puts("\n");
+            lv1_puts("poke8 addr = ");
+            lv1_print_hex(r6_2);
+            lv1_puts(", value = ");
+            lv1_print_hex(r7_2);
+            lv1_puts("\n");
         }
 
         return;
@@ -847,9 +763,9 @@ __attribute__((section("main3"))) void stage3_main()
     {
         sc_puts_init();
 
-        puts("print hex value = ");
-        print_hex(r6_2);
-        puts("\n");
+        lv1_puts("print hex value = ");
+        lv1_print_hex(r6_2);
+        lv1_puts("\n");
 
         return;
     }
@@ -877,29 +793,18 @@ __attribute__((section("main3"))) void stage3_main()
     }
 #endif
 
-#if 1
-    // debug
-    if (r5_2 == 0x32)
-    {
-        sc_puts_init();
-        Stage3_Debug();
-
-        return;
-    }
-#endif
-
     if ((r5_2 != 0x0) && (r5_2 != 0x30) && (r5_2 != 0x31))
         return;
 
-    uint64_t *alreadyDone = (uint64_t *)0x128;
+    struct Stagex_Context_s* ctx = GetStagexContext();
 
-    if (*alreadyDone == 0x69)
+    if (ctx->stage3_alreadyDone == 0x69)
         return;
 
     sc_puts_init();
     Stage3();
 
-    *alreadyDone = 0x69;
+    ctx->stage3_alreadyDone = 0x69;
 }
 
 #pragma GCC pop_options

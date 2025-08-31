@@ -6,53 +6,13 @@
 
 FUNC_DEF void Stage5()
 {
-    //puts("BadWDSD Stage5 by Kafuu(aomsin2526)\n");
+    //lv1_puts("BadWDSD Stage5 by Kafuu(aomsin2526)\n");
 
-    //puts("(Build Date: ");
-    //puts(__DATE__);
-    //puts(" ");
-    //puts(__TIME__);
-    //puts(")\n");
-
-#if 0
-
-    {
-        //
-
-        uint64_t *stage5_loopCount = (uint64_t *)0x220;
-        ++(*stage5_loopCount);
-
-        uint64_t *stage5_HashCache = (uint64_t *)0x218;
-
-        //
-
-        uint64_t *lv1_lv2AreaSizePtr = (uint64_t *)0x370F28;
-
-        uint64_t lv2AreaAddrRa = 0x0;
-
-        if (!FindLv2(&lv2AreaAddrRa))
-        {
-            puts("lv2 area not found!\n");
-            return;
-        }
-
-        //
-
-        uint64_t hash = 0;
-
-        for (uint64_t addr = lv2AreaAddrRa; addr < (lv2AreaAddrRa + *lv1_lv2AreaSizePtr); addr += 8)
-            hash += *((uint64_t*)addr);
-
-        //
-
-        if (*stage5_HashCache != hash)
-        {
-            *stage5_HashCache = hash;
-            RegenLv2AreaHash(6);
-        }
-    }
-
-#endif
+    //lv1_puts("(Build Date: ");
+    //lv1_puts(__DATE__);
+    //lv1_puts(" ");
+    //lv1_puts(__TIME__);
+    //lv1_puts(")\n");
 
     {
         uint64_t *lv1_lv2AreaAddrPtr = (uint64_t *)0x370F20;
@@ -74,7 +34,7 @@ FUNC_DEF void Stage5()
         eieio();
     }
 
-    //puts("Stage5 done.\n");
+    //lv1_puts("Stage5 done.\n");
 }
 
 #pragma GCC pop_options

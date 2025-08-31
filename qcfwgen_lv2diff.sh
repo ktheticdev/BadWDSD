@@ -122,6 +122,9 @@ cp -a lv1.diff outros/lv1.diff || exit 1
 echo Copying lv2_kernel.diff to outros/lv2_kernel.diff...
 cp -a lv2_kernel.diff outros/lv2_kernel.diff || exit 1
 
+echo Creating outros/qcfw
+echo "qcfw_lv2diff" > outros/qcfw
+
 read -p "Modify outros now then press ENTER to continue"
 
 echo Generate CoreOS.bin...

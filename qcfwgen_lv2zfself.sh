@@ -131,6 +131,9 @@ read -p "then press ENTER to continue"
 echo Copying lv2_kernel.zfself to outros/lv2_kernel.self...
 cp -a lv2_kernel.zfself outros/lv2_kernel.self || exit 1
 
+echo Creating outros/qcfw
+echo "qcfw_lv2zfself" > outros/qcfw
+
 read -p "Modify outros now then press ENTER to continue"
 
 echo Generate CoreOS.bin...

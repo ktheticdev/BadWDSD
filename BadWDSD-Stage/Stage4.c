@@ -13,9 +13,9 @@ FUNC_DEF uint64_t FindLoadMe()
     uint64_t loadme_addr = 0;
 
     if (loadme_addr == 0)
-        loadme_addr = FindLoadMe2(0x1000000);
-    if (loadme_addr == 0)
         loadme_addr = FindLoadMe2(0x8000000);
+    if (loadme_addr == 0)
+        loadme_addr = FindLoadMe2(0x1000000);
     
     if (loadme_addr == 0)
     {
@@ -35,23 +35,23 @@ FUNC_DEF void Stage4()
 {
     sc_puts_init();
 
-    puts("BadWDSD Stage4 by Kafuu(aomsin2526)\n");
+    lv1_puts("BadWDSD Stage4 by Kafuu(aomsin2526)\n");
 
-    puts("(Build Date: ");
-    puts(__DATE__);
-    puts(" ");
-    puts(__TIME__);
-    puts(")\n");
+    lv1_puts("(Build Date: ");
+    lv1_puts(__DATE__);
+    lv1_puts(" ");
+    lv1_puts(__TIME__);
+    lv1_puts(")\n");
 
     uint64_t loadme_addr = FindLoadMe();
 
-    puts("loadme_addr = ");
-    print_hex(loadme_addr);
-    puts("\n");
+    lv1_puts("loadme_addr = ");
+    lv1_print_hex(loadme_addr);
+    lv1_puts("\n");
 
     if (loadme_addr == 0)
     {
-        puts("can't find loadme!!\n");
+        lv1_puts("can't find loadme!!\n");
         dead_beep();
     }
 
@@ -62,18 +62,18 @@ FUNC_DEF void Stage4()
 
         if (sceHeader->magic != 0x53434500)
         {
-            puts("sce_magic check failed!\n");
+            lv1_puts("sce_magic check failed!\n");
             dead_beep();
         }
 
         if (sceHeader->attribute != 0x8000)
         {
-            puts("SELF detected\n");
+            lv1_puts("SELF detected\n");
 
             //FUNC_DEF void DecryptLv2Self(void *inDest, const void *inSrc, void* decryptBuf)
             DecryptLv2Self((void*)0xB000000, (const void*)0xC000000, (void*)0xA000000, 1);
 
-            puts("Loading elf...\n");
+            lv1_puts("Loading elf...\n");
 
             memset((void *)loadme_addr, 0, (16 * 1024 * 1024));
             LoadElf(0xB000000, loadme_addr, 1);
@@ -82,50 +82,50 @@ FUNC_DEF void Stage4()
         {
             uint64_t file_offset = *((uint64_t *)0xC000010);
 
-            puts("file_offset = ");
-            print_hex(file_offset);
+            lv1_puts("file_offset = ");
+            lv1_print_hex(file_offset);
 
             uint64_t real_file_size = *((uint64_t *)0xC000018);
 
-            puts(", real_file_size = ");
-            print_hex(real_file_size);
+            lv1_puts(", real_file_size = ");
+            lv1_print_hex(real_file_size);
 
             uint64_t real_file_data = (0xC000000 + file_offset);
 
-            puts(", real_file_data = ");
-            print_hex(real_file_data);
+            lv1_puts(", real_file_data = ");
+            lv1_print_hex(real_file_data);
 
             uint64_t file_size = real_file_size;
             file_size -= 0x10000;
 
-            puts(", file_size = ");
-            print_hex(file_size);
+            lv1_puts(", file_size = ");
+            lv1_print_hex(file_size);
 
             uint64_t file_data = real_file_data;
             file_data += 0x10000;
 
-            puts(", file_data = ");
-            print_hex(file_data);
+            lv1_puts(", file_data = ");
+            lv1_print_hex(file_data);
 
-            puts("\n");
+            lv1_puts("\n");
 
             uint64_t zelf_magic = *((uint64_t *)file_data);
 
             if ((zelf_magic == 0x5A454C465A454C46) || (zelf_magic == 0x5A454C465A454C32))
             {
-                puts("ZELF/ZELF2 detected\n");
+                lv1_puts("ZELF/ZELF2 detected\n");
 
                 uint64_t sz = (16 * 1024 * 1024);
                 ZelfDecompress(file_data, (void *)0xB000000, &sz, 1);
 
-                puts("Loading elf...\n");
+                lv1_puts("Loading elf...\n");
 
                 memset((void *)loadme_addr, 0, (16 * 1024 * 1024));
                 LoadElf(0xB000000, loadme_addr, 1);
             }
             else
             {
-                puts("ZELF not detected, assume RAW\n");
+                lv1_puts("ZELF not detected, assume RAW\n");
 
                 memset((void *)loadme_addr, 0, (16 * 1024 * 1024));
                 memcpy((void *)loadme_addr, (void *)file_data, file_size);
@@ -133,19 +133,14 @@ FUNC_DEF void Stage4()
         }
     }
 
-    if (0)
     {
-        puts("Enabling Load Cobra from USB...\n");
+        uint8_t qcfw_lite_flag = get_qcfw_lite_flag();
 
-        volatile uint8_t* enableLoadCobraFromUSB = (volatile uint8_t*)(loadme_addr + 0x30);
-        *enableLoadCobraFromUSB = 1;
-        eieio();
-
-        sc_triple_beep();
-        WaitInMs(1200);
+        if (qcfw_lite_flag == 0x1)
+            EnableLoadCobraFromUSB(loadme_addr);
     }
 
-    puts("Stage4 done.\n");
+    lv1_puts("Stage4 done.\n");
 
     eieio();
 }

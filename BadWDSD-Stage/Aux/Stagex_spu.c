@@ -180,12 +180,12 @@ void SubmitDMACmd(struct DMACmd_s* cmd)
 
     spu_writech(MFC_TagID, 0);
 
-    sync();
+    //sync();
 
     spu_writech(MFC_Cmd, (uint32_t)cmd->cmd); // upper 16 bits is classid, must be 0
-    sync();
+    //sync();
 
-    DMAWait();
+    //DMAWait();
 }
 
 void DMARead(void* ls, uint64_t ea, uint32_t size)
@@ -227,6 +227,8 @@ void DMARead(void* ls, uint64_t ea, uint32_t size)
         if (left == 0)
             break;
     }
+
+    DMAWait();
 }
 
 void DMAWrite(const void* ls, uint64_t ea, uint32_t size)
@@ -268,6 +270,8 @@ void DMAWrite(const void* ls, uint64_t ea, uint32_t size)
         if (left == 0)
             break;
     }
+
+    DMAWait();
 }
 
 #include "../Aes/Aes.c"

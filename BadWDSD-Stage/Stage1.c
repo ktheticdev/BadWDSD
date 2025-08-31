@@ -21,6 +21,18 @@ FUNC_DEF void Stage1()
 
     // puts("hello superslim :)\n");
 
+    uint16_t fwVersion = CoreOS_CurrentBank_GetFWVersion();
+
+    puts("fwVersion = ");
+    print_decimal(fwVersion);
+    puts("\n");
+
+    uint8_t isqCFW = CoreOS_CurrentBank_IsqCFW();
+
+    puts("isqCFW = ");
+    print_decimal(isqCFW);
+    puts("\n");
+
     {
         uint64_t lv0FileAddress;
         uint64_t lv0FileSize;
@@ -95,6 +107,7 @@ FUNC_DEF void Stage1()
 
                     DecryptLv0Self((void*)lv0FileAddress, (const void*)lv0SelfFileAddress, 1);
 
+                    if ((fwVersion >= 470) || isqCFW)
                     {
                         uint8_t searchData[] = {0x38, 0x60, 0x01, 0x00, 0x7C, 0x69, 0x03, 0xA6, 0x4E, 0x80, 0x04, 0x20, 0x60, 0x00, 0x00, 0x00};
                         
@@ -106,6 +119,8 @@ FUNC_DEF void Stage1()
                         if (!SearchAndReplace((void*)lv0FileAddress, lv0FileSize, searchData, 16, stage2jData, 32))
                             puts("Install failed!\n");
                     }
+                    else
+                        puts("fw too low!\n");
                 }
                 else
                     puts("File not found!\n");

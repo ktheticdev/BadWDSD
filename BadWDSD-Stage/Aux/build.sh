@@ -6,7 +6,7 @@ echo Building Stagex_spu...
 
 export SPU_CC=$PS3DEV/spu/bin/spu-gcc
 
-export SPU_FLAGS="-O2 -Wall -nostdlib -static -ffunction-sections -fdata-sections -Wl,--gc-sections"
+export SPU_FLAGS="-O2 -Wall -nostdlib -static -ffunction-sections -fdata-sections -Wl,--gc-sections -flto"
 export SPU_STAGEX_FLAGS="-estart"
 
 $SPU_CC $SPU_FLAGS $SPU_STAGEX_FLAGS -T Stagex_spu.ld Stagex_spu.S Stagex_spu.c -o Stagex_spu.elf || exit 1
@@ -33,5 +33,14 @@ cp $ROOT_DIR/tools/coreos_tools/coreos_tools temp/coreos_tools || exit 1
 
 mkdir temp/Stagex_aux || exit 1
 cp Stagex_spu.elf temp/Stagex_aux || exit 1
+
+###
+
+echo Copying qcfw-lite...
+
+cp ../../qcfw-lite/qcfwlite492cex_lv1.diff temp/Stagex_aux || exit 1
+cp ../../qcfw-lite/qcfwlite492cex_lv2_kernel.zdiff temp/Stagex_aux || exit 1
+
+###
 
 temp/coreos_tools create_coreos temp/Stagex_aux Stagex_aux.bin || exit 1
