@@ -1,5 +1,5 @@
 #define SC_PUTS_BUFFER_ENABLED 1
-#define SC_LV1_LOGGING_ENABLED 1
+//#define SC_LV1_LOGGING_ENABLED 1
 
 //#define STAGE5_LOG_ENABLED 1
 
@@ -130,10 +130,15 @@ register uint64_t interrupt_depth asm("r26");
 
 struct Stagex_Context_s
 {
+    uint64_t cached_myappldrElfAddress;
+    uint64_t cached_mymetldrElfAddress;
+    
     uint8_t cached_os_bank_indicator;
     uint8_t cached_qcfw_lite_flag;
 
     uint8_t stage3_alreadyDone;
+
+    uint8_t stage6_isAppldr;
 };
 
 FUNC_DEF struct Stagex_Context_s* GetStagexContext()
@@ -2855,7 +2860,7 @@ FUNC_DEF void DecryptLv2Self(void *inDest, const void *inSrc, void* decryptBuf, 
 #include "Stage3.c"
 #include "Stage4.c"
 #include "Stage5.c"
-//#include "Stage6.c"
+#include "Stage6.c"
 
 #pragma GCC push_options
 #pragma GCC optimize("O0")
@@ -2866,7 +2871,7 @@ void stage_link_entry()
     asm volatile("bl stage2_entry");
     asm volatile("bl stage3_entry");
     asm volatile("bl stage5_entry");
-    //asm volatile("bl stage6_entry");
+    asm volatile("bl stage6_entry");
 }
 
 #pragma GCC pop_options

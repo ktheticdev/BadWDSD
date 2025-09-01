@@ -1,54 +1,155 @@
-// note: log should be disabled in normal use
-// STAGE5_LOG_ENABLED
-
 #pragma GCC push_options
 //#pragma GCC optimize("O0")
 
-FUNC_DEF void Stage5()
+struct __attribute__((aligned(8))) mymetldr_context_s
 {
-    //lv1_puts("BadWDSD Stage5 by Kafuu(aomsin2526)\n");
+    uint64_t myappldrElfAddress;
+};
 
-    //lv1_puts("(Build Date: ");
-    //lv1_puts(__DATE__);
-    //lv1_puts(" ");
-    //lv1_puts(__TIME__);
-    //lv1_puts(")\n");
+FUNC_DEF void Stage6_IsoLoadRequest(uint64_t spu_id)
+{
+    //lv1_puts("Stage6_IsoLoadRequest()\n");
+    
+    //lv1_puts("spu_id = ");
+    //lv1_print_decimal(spu_id);
+    //lv1_puts("\n");
 
     struct Stagex_Context_s* ctx = GetStagexContext();
-    ctx->stage6_isAppldr = 1;
 
+    uint64_t myappldrElfAddress = ctx->cached_myappldrElfAddress;
+    
+    if ((spu_id != 4) || !ctx->stage6_isAppldr || (myappldrElfAddress == 0))
     {
-        uint64_t *lv1_lv2AreaAddrPtr = (uint64_t *)0x370F20;
-        uint64_t *lv1_lv2AreaSizePtr = (uint64_t *)0x370F28;
+        SPU_PS_Write32(spu_id, 0x0401C, 0x3);
 
-        *lv1_lv2AreaAddrPtr = 0x8000000000000000; // 0x8000000000000000
-        *lv1_lv2AreaSizePtr = 16;
-
-        //Sc_Rx: after_lv1_lv2AreaHash[0] = 0xfa60f9a679d561e2
-        //Sc_Rx: after_lv1_lv2AreaHash[1] = 0x4766aa39b90084b0
-        //Sc_Rx: after_lv1_lv2AreaHash[2] = 0xb27d2ff00000000
-
-        uint64_t *lv1_lv2AreaHashPtr = (uint64_t *)0x370F30;
-
-        lv1_lv2AreaHashPtr[0] = 0xfa60f9a679d561e2;
-        lv1_lv2AreaHashPtr[1] = 0x4766aa39b90084b0;
-        lv1_lv2AreaHashPtr[2] = 0x0b27d2ff00000000;
-
-        eieio();
+        ctx->stage6_isAppldr = 0;
+        return;
     }
 
-    //lv1_puts("Stage5 done.\n");
+    ctx->stage6_isAppldr = 0;
+
+    uint64_t mymetldrElfAddress = ctx->cached_mymetldrElfAddress;
+
+    if (mymetldrElfAddress == 0)
+    {
+        lv1_puts("mymetldr.elf not found!\n");
+        dead_beep();
+    }
+
+    static const uint32_t SPU_STATUS_RUN_MASK = (1 << 0);
+    static const uint32_t SPU_STATUS_ISOLATED_MASK = (1 << 7);
+
+    uint32_t status = SPU_PS_Read32(spu_id, 0x04024);
+    if ((status & SPU_STATUS_RUN_MASK) != 0)
+    {
+        // stop request
+        SPU_PS_Write32(spu_id, 0x0401C, 0x0);
+
+        while ((status & SPU_STATUS_RUN_MASK) != 0)
+        {
+            status = SPU_PS_Read32(spu_id, 0x04024);
+        }
+    }
+
+    status = SPU_PS_Read32(spu_id, 0x04024);
+    if ((status & SPU_STATUS_ISOLATED_MASK) != 0)
+    {
+        // iso exit request
+        SPU_PS_Write32(spu_id, 0x0401C, 0x2);
+
+        while ((status & SPU_STATUS_ISOLATED_MASK) != 0)
+        {
+            status = SPU_PS_Read32(spu_id, 0x04024);
+        }
+    }
+
+    //lv1_puts("Loading mymetldr.elf...\n");
+    LoadElfSpu(mymetldrElfAddress, spu_id, 1);
+    
+    {
+        struct mymetldr_context_s mctx;
+        mctx.myappldrElfAddress = myappldrElfAddress;
+
+        memcpy((void*)SPU_CalcMMIOAddress_LS(spu_id, 0x100), &mctx, sizeof(mctx));
+    }
+
+    eieio();
+    SPU_PS_Write32(spu_id, 0x0401C, 0x1);
+}
+
+FUNC_DEF uint32_t Stage6_GetSpuStatus(uint64_t spu_id)
+{
+    //lv1_puts("Stage6_GetSpuStatus()\n");
+    
+    //lv1_puts("spu_id = ");
+    //lv1_print_decimal(spu_id);
+    //lv1_puts("\n");
+
+    static const uint32_t SPU_STATUS_ISOLATED_MASK = (1 << 7);
+
+    uint32_t status = SPU_PS_Read32(spu_id, 0x04024);
+
+    if ((spu_id == 4) && (SPU_LS_Read64(spu_id, 0x39100) == 0x123456789))
+        status |= SPU_STATUS_ISOLATED_MASK;
+
+#if 0
+
+    lv1_puts("status = ");
+    lv1_print_hex(status);
+    lv1_puts("\n");
+
+    uint32_t npc = SPU_PS_Read32(spu_id, 0x04034);
+    lv1_puts("npc = ");
+    lv1_print_hex(npc);
+    lv1_puts("\n");
+
+    struct Stagex_spu_DMACmd_s dmaCmd;
+    memcpy(&dmaCmd, (const void*)SPU_CalcMMIOAddress_LS(spu_id, 0x10), sizeof(dmaCmd));
+
+    lv1_puts("dmaCmd.ls = ");
+    lv1_print_hex(dmaCmd.ls);
+    lv1_puts("\n");
+
+    lv1_puts("dmaCmd.ea = ");
+    lv1_print_hex(dmaCmd.ea);
+    lv1_puts("\n");
+
+    lv1_puts("dmaCmd.size = ");
+    lv1_print_decimal(dmaCmd.size);
+    lv1_puts("\n");
+
+    lv1_puts("dmaCmd.cmd = ");
+    lv1_print_hex(dmaCmd.cmd);
+    lv1_puts("\n");
+
+#endif
+
+    return status;
 }
 
 #pragma GCC pop_options
 
-__attribute__((section("main5"))) void stage5_main()
+__attribute__((section("main6"))) uint64_t stage6_main(uint64_t spu_id)
 {
+    register uint64_t r10 asm("r10");
+    uint64_t r10_2 = r10;
+
     sc_puts_init();
-    Stage5();
+
+    if (r10_2 == 1)
+        Stage6_IsoLoadRequest(spu_id);
+    else if (r10_2 == 2)
+        return Stage6_GetSpuStatus(spu_id);
+    else
+    {
+        lv1_puts("stage6_main bad r10!\n");
+        dead();
+    }
+
+    return 0;
 }
 
-__attribute__((noreturn, section("entry5"))) void stage5_entry()
+__attribute__((noreturn, section("entry6"))) void stage6_entry()
 {
     // push stack
     asm volatile("addi 1, 1, -512");
@@ -89,7 +190,7 @@ __attribute__((noreturn, section("entry5"))) void stage5_entry()
 
 #if 1
 
-    register uint64_t r3 asm("r3");
+    register uint64_t r8 asm("r8");
 
     // push stack
     asm volatile("addi 1, 1, -64");
@@ -98,8 +199,8 @@ __attribute__((noreturn, section("entry5"))) void stage5_entry()
     asm volatile("std 2, 0(1)");
 
     // store original lr to stack
-    asm volatile("mflr %0" : "=r"(r3)::);
-    asm volatile("std %0, 8(1)" ::"r"(r3) :);
+    asm volatile("mflr %0" : "=r"(r8)::);
+    asm volatile("std %0, 8(1)" ::"r"(r8) :);
 
     // set stage_entry_ra
     asm volatile("bl 4");
@@ -112,15 +213,15 @@ __attribute__((noreturn, section("entry5"))) void stage5_entry()
     // set interrupt_depth to 0
     interrupt_depth = 0;
 
-    // set is_lv1 to 0x9666 (stage5)
-    is_lv1 = 0x9666;
+    // set is_lv1 to 0x9669
+    is_lv1 = 0x9669;
 
     // set stage_zero to 0
     stage_zero = 0;
 
     // set stage_rtoc
     stage_rtoc = stage_entry_ra;
-    stage_rtoc += 0x400; // .toc
+    stage_rtoc += 0x200; // .toc
     stage_rtoc += 0x8000;
 
     // set r2 to stage_rtoc
@@ -141,8 +242,8 @@ __attribute__((noreturn, section("entry5"))) void stage5_entry()
     // push stack
     asm volatile("addi 1, 1, -128");
 
-    // jump to stage5_main
-    asm volatile("bl stage5_main");
+    // jump to stage6_main
+    asm volatile("bl stage6_main");
 
     // pop stack
     asm volatile("addi 1, 1, 128");
@@ -151,12 +252,12 @@ __attribute__((noreturn, section("entry5"))) void stage5_entry()
     asm volatile("mr 1, %0" ::"r"(lv1_sp) :);
 
     // restore original lr from stack
-    asm volatile("ld %0, 8(1)" : "=r"(r3)::);
-    asm volatile("mtlr %0" ::"r"(r3));
+    asm volatile("ld %0, 8(1)" : "=r"(r8)::);
+    asm volatile("mtlr %0" ::"r"(r8));
 
     // restore original rtoc from stack
-    asm volatile("ld %0, 0(1)" : "=r"(r3)::);
-    asm volatile("mr 2, %0" ::"r"(r3));
+    asm volatile("ld %0, 0(1)" : "=r"(r8)::);
+    asm volatile("mr 2, %0" ::"r"(r8));
 
     // pop stack
     asm volatile("addi 1, 1, 64");
@@ -167,7 +268,7 @@ __attribute__((noreturn, section("entry5"))) void stage5_entry()
     asm volatile("ld 0, %0(1)" ::"i"(8 * 0) :);
     asm volatile("ld 1, %0(1)" ::"i"(8 * 1) :);
     asm volatile("ld 2, %0(1)" ::"i"(8 * 2) :);
-    asm volatile("ld 3, %0(1)" ::"i"(8 * 3) :);
+    //asm volatile("ld 3, %0(1)" ::"i"(8 * 3) :);
     asm volatile("ld 4, %0(1)" ::"i"(8 * 4) :);
     asm volatile("ld 5, %0(1)" ::"i"(8 * 5) :);
     asm volatile("ld 6, %0(1)" ::"i"(8 * 6) :);
@@ -202,46 +303,6 @@ __attribute__((noreturn, section("entry5"))) void stage5_entry()
 
     // sync
     asm volatile("sync");
-
-    // push stack
-    asm volatile("addi 1, 1, -16");
-
-    // store original lr to stack
-    asm volatile("mflr 0");
-    asm volatile("std 0, 0(1)");
-
-    // continue...
-
-    asm volatile("ld 9, -0x30f8(2)");
-    asm volatile("mr 0, 4");
-    asm volatile("mr 6, 5");
-    asm volatile("mr 4, 3");
-    asm volatile("mr 5, 0");
-    asm volatile("ld 3, 0(9)");
-
-    // call 0x2B5088
-
-    asm volatile("li 11, 0x2B50");
-    asm volatile("sldi 11, 11, 8");
-    asm volatile("addi 11, 11, 0x88");
-
-    // push stack
-    asm volatile("addi 1, 1, -128");
-
-    //
-    asm volatile("mtctr 11");
-    asm volatile("bctrl");
-    //
-
-    // pop stack
-    asm volatile("addi 1, 1, 128");
-
-    // restore original lr from stack
-    asm volatile("ld 0, 0(1)");
-    asm volatile("mtlr 0");
-
-    // pop stack
-    asm volatile("addi 1, 1, 16");
 
     //
     asm volatile("blr");

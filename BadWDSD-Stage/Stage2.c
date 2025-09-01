@@ -64,6 +64,9 @@ FUNC_DEF void ApplyLv1Diff(uint64_t lv1DiffFileAddress, uint8_t verifyOrig)
     puts("ApplyLv1Diff() done.\n");
 }
 
+#pragma GCC push_options
+#pragma GCC optimize("O0")
+
 FUNC_DEF void Stage2()
 {
     puts("BadWDSD Stage2 by Kafuu(aomsin2526)\n");
@@ -288,11 +291,15 @@ FUNC_DEF void Stage2()
         {
             struct Stagex_Context_s* ctx = GetStagexContext();
 
+            //
+
             ctx->cached_os_bank_indicator = sc_read_os_bank_indicator();
 
             puts("cached_os_bank_indicator = ");
             print_hex(ctx->cached_os_bank_indicator);
             puts("\n");
+
+            //
 
             ctx->cached_qcfw_lite_flag = sc_read_qcfw_lite_flag();
 
@@ -300,7 +307,33 @@ FUNC_DEF void Stage2()
             print_hex(ctx->cached_qcfw_lite_flag);
             puts("\n");
 
+            //
+
             ctx->stage3_alreadyDone = 0;
+
+            ctx->stage6_isAppldr = 0;
+
+            //
+
+            ctx->cached_myappldrElfAddress = 0;
+
+            CoreOS_FindFileEntry_CurrentBank("myappldr.elf", &ctx->cached_myappldrElfAddress, NULL);
+
+            puts("cached_myappldrElfAddress = ");
+            print_hex(ctx->cached_myappldrElfAddress);
+            puts("\n");
+
+            //
+
+            ctx->cached_mymetldrElfAddress = 0;
+
+            CoreOS_FindFileEntry_Aux("mymetldr.elf", &ctx->cached_mymetldrElfAddress, NULL);
+
+            puts("cached_mymetldrElfAddress = ");
+            print_hex(ctx->cached_mymetldrElfAddress);
+            puts("\n");
+
+            //
         }
 
         puts("Booting lv1...\n");
@@ -312,6 +345,8 @@ FUNC_DEF void Stage2()
         asm volatile("bctr");
     }
 }
+
+#pragma GCC pop_options
 
 __attribute__((section("main2"))) void stage2_main()
 {
