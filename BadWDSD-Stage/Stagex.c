@@ -2023,7 +2023,10 @@ FUNC_DEF void LoadElf(uint64_t elfFileAddress, uint64_t destAddressOffset, uint8
         puts("\n");
 
         if (doZero)
-            memset((void *)(loadAddress), 0, phdr->p_memsz);
+        {
+            uint64_t clearSize = (phdr->p_memsz - phdr->p_filesz);
+            memset((void *)(loadAddress + phdr->p_filesz), 0, clearSize);
+        }
             
         memcpy((void *)(loadAddress), (void *)(elfFileAddress + phdr->p_offset), phdr->p_filesz);
 

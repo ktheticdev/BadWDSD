@@ -181,8 +181,12 @@ FUNC_DEF void LoadElfSpu(uint64_t elfFileAddress, uint64_t spu_id, uint8_t quiet
             puts("\n");
         }
 
-        for (uint64_t i = 0; i < (phdr->p_memsz - phdr->p_filesz); i += 8)
-            SPU_LS_Write64(spu_id, (phdr->p_vaddr + i), 0);
+        {
+            uint64_t clearSize = (phdr->p_memsz - phdr->p_filesz);
+
+            for (uint64_t i = 0; i < clearSize; i += 8)
+                SPU_LS_Write64(spu_id, ((phdr->p_vaddr + phdr->p_filesz) + i), 0);
+        }
 
         for (uint64_t i = 0; i < phdr->p_filesz; i += 8)
         {
