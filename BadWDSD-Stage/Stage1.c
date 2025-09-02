@@ -3,7 +3,8 @@
 
 FUNC_DEF void Stage1()
 {
-    puts("BadWDSD Stage1 by Kafuu(aomsin2526)\n");
+    real_sc_puts_init();
+    sc_puts("BadWDSD Stage1 by Kafuu(aomsin2526)\n");
 
     puts("(Build Date: ");
     puts(__DATE__);
@@ -21,13 +22,19 @@ FUNC_DEF void Stage1()
 
     // puts("hello superslim :)\n");
 
-    uint16_t fwVersion = CoreOS_CurrentBank_GetFWVersion();
+    uint8_t os_bank_indicator = get_os_bank_indicator();
+    
+    puts("os_bank_indicator = ");
+    print_hex(os_bank_indicator);
+    puts("\n");
+
+    uint16_t fwVersion = CoreOS_Bank_GetFWVersion(os_bank_indicator);
 
     puts("fwVersion = ");
     print_decimal(fwVersion);
     puts("\n");
 
-    uint8_t isqCFW = CoreOS_CurrentBank_IsqCFW();
+    uint8_t isqCFW = CoreOS_Bank_IsqCFW(os_bank_indicator);
 
     puts("isqCFW = ");
     print_decimal(isqCFW);
@@ -44,7 +51,7 @@ FUNC_DEF void Stage1()
             {
                 puts("Searching for lv0.elf...\n");
 
-                if (CoreOS_FindFileEntry_CurrentBank("lv0.elf", &lv0FileAddress, &lv0FileSize))
+                if (CoreOS_FindFileEntry_Bank(os_bank_indicator, "lv0.elf", &lv0FileAddress, &lv0FileSize))
                     found = 1;
                 else
                     puts("File not found!\n");
@@ -57,7 +64,7 @@ FUNC_DEF void Stage1()
                 uint64_t zelfFileAddress;
                 uint64_t zelfFileSize;
 
-                if (CoreOS_FindFileEntry_CurrentBank("lv0.zelf", &zelfFileAddress, &zelfFileSize))
+                if (CoreOS_FindFileEntry_Bank(os_bank_indicator, "lv0.zelf", &zelfFileAddress, &zelfFileSize))
                 {
                     found = 1;
 
@@ -85,7 +92,7 @@ FUNC_DEF void Stage1()
                 uint64_t lv0SelfFileAddress;
                 uint64_t lv0SelfFileSize;
 
-                if (CoreOS_FindFileEntry_CurrentBank("lv0", &lv0SelfFileAddress, &lv0SelfFileSize))
+                if (CoreOS_FindFileEntry_Bank(os_bank_indicator, "lv0", &lv0SelfFileAddress, &lv0SelfFileSize))
                 {
                     found = 1;
 

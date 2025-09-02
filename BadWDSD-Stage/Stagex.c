@@ -1,4 +1,6 @@
 #define SC_PUTS_BUFFER_ENABLED 1
+
+//#define LOGGING_ENABLED 1
 //#define SC_LV1_LOGGING_ENABLED 1
 
 //#define STAGE5_LOG_ENABLED 1
@@ -158,6 +160,10 @@ FUNC_DEF uint8_t IsStage5()
 
 FUNC_DEF uint8_t IsLogEnabled()
 {
+#if !LOGGING_ENABLED
+    return 0;
+#endif
+
 #if !SC_LV1_LOGGING_ENABLED
     if (IsLv1())
         return 0;
@@ -1109,11 +1115,8 @@ FUNC_DEF void sc_hard_restart()
     sc_send_packet(&pkt, NULL);
 }
 
-FUNC_DEF void sc_puts_init()
+FUNC_DEF void real_sc_puts_init()
 {
-    if (!IsLogEnabled())
-        return;
-
 #if SC_PUTS_BUFFER_ENABLED
     uint64_t *sc_puts_buflen = (uint64_t *)0xD000000;
     char *sc_puts_buf = (char *)0xD000010;
@@ -1123,11 +1126,16 @@ FUNC_DEF void sc_puts_init()
 #endif
 }
 
-FUNC_DEF void sc_puts(const char *str)
+FUNC_DEF void sc_puts_init()
 {
     if (!IsLogEnabled())
         return;
 
+    real_sc_puts_init();
+}
+
+FUNC_DEF void sc_puts(const char *str)
+{
     uint64_t len = strlen(str);
 
     if (len == 0)
@@ -1254,7 +1262,7 @@ FUNC_DEF uint8_t get_qcfw_lite_flag()
     return GetStagexContext()->cached_qcfw_lite_flag;
 }
 
-FUNC_DEF void puts(const char *str)
+FUNC_DEF void real_puts(const char *str)
 {
     if (!IsLogEnabled())
         return;
@@ -1262,7 +1270,7 @@ FUNC_DEF void puts(const char *str)
     sc_puts(str);
 }
 
-FUNC_DEF void print_decimal(uint64_t v)
+FUNC_DEF void real_print_decimal(uint64_t v)
 {
     if (!IsLogEnabled())
         return;
@@ -1329,10 +1337,10 @@ FUNC_DEF void print_decimal(uint64_t v)
     //++curOutBufLen;
 
     outBuf[curOutBufLen] = 0;
-    puts(outBuf);
+    real_puts(outBuf);
 }
 
-FUNC_DEF void print_hex(uint64_t v)
+FUNC_DEF void real_print_hex(uint64_t v)
 {
     if (!IsLogEnabled())
         return;
@@ -1405,8 +1413,18 @@ FUNC_DEF void print_hex(uint64_t v)
     //++curOutBufLen;
 
     outBuf[curOutBufLen] = 0;
-    puts(outBuf);
+    real_puts(outBuf);
 }
+
+#if LOGGING_ENABLED
+#define puts real_puts
+#define print_decimal real_print_decimal
+#define print_hex real_print_hex
+#else
+#define puts(...)
+#define print_decimal(...)
+#define print_hex(...)
+#endif
 
 #if SC_LV1_LOGGING_ENABLED
 #define lv1_puts puts
@@ -1859,10 +1877,8 @@ FUNC_DEF uint8_t CoreOS_FindFileEntry(uint64_t startAddress, const char *fileNam
     return 0;
 }
 
-FUNC_DEF uint8_t CoreOS_FindFileEntry_CurrentBank(const char *fileName, uint64_t *outFileAddress, uint64_t *outFileSize)
+FUNC_DEF uint8_t CoreOS_FindFileEntry_Bank(uint8_t os_bank_indicator, const char *fileName, uint64_t *outFileAddress, uint64_t *outFileSize)
 {
-    uint8_t os_bank_indicator = get_os_bank_indicator();
-
 #if 0
 
     puts("os_bank_indicator = ");
@@ -1881,16 +1897,23 @@ FUNC_DEF uint8_t CoreOS_FindFileEntry_CurrentBank(const char *fileName, uint64_t
     return CoreOS_FindFileEntry(coreOSStartAddress, fileName, outFileAddress, outFileSize);
 }
 
+FUNC_DEF uint8_t CoreOS_FindFileEntry_CurrentBank(const char *fileName, uint64_t *outFileAddress, uint64_t *outFileSize)
+{
+    uint8_t os_bank_indicator = get_os_bank_indicator();
+
+    return CoreOS_FindFileEntry_Bank(os_bank_indicator, fileName, outFileAddress, outFileSize);
+}
+
 FUNC_DEF uint8_t CoreOS_FindFileEntry_Aux(const char *fileName, uint64_t *outFileAddress, uint64_t *outFileSize)
 {
     return CoreOS_FindFileEntry(0x2401FF21000, fileName, outFileAddress, outFileSize);
 }
 
-FUNC_DEF uint16_t CoreOS_CurrentBank_GetFWVersion()
+FUNC_DEF uint16_t CoreOS_Bank_GetFWVersion(uint8_t os_bank_indicator)
 {
     uint64_t addr;
     
-    if (!CoreOS_FindFileEntry_CurrentBank("sdk_version", &addr, NULL))
+    if (!CoreOS_FindFileEntry_Bank(os_bank_indicator, "sdk_version", &addr, NULL))
         return 0;
 
     const char* str = (const char*)addr;
@@ -1905,9 +1928,19 @@ FUNC_DEF uint16_t CoreOS_CurrentBank_GetFWVersion()
     return ver;
 }
 
+FUNC_DEF uint16_t CoreOS_CurrentBank_GetFWVersion()
+{
+    return CoreOS_Bank_GetFWVersion(get_os_bank_indicator());
+}
+
+FUNC_DEF uint8_t CoreOS_Bank_IsqCFW(uint8_t os_bank_indicator)
+{
+    return CoreOS_FindFileEntry_Bank(os_bank_indicator, "qcfw", NULL, NULL);
+}
+
 FUNC_DEF uint8_t CoreOS_CurrentBank_IsqCFW()
 {
-    return CoreOS_FindFileEntry_CurrentBank("qcfw", NULL, NULL);
+    return CoreOS_Bank_IsqCFW(get_os_bank_indicator());
 }
 
 struct ElfHeader_s

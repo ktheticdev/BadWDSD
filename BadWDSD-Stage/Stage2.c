@@ -77,10 +77,12 @@ FUNC_DEF void Stage2()
     puts(__TIME__);
     puts(")\n");
 
-    uint8_t isqCFW = CoreOS_CurrentBank_IsqCFW();
+    uint8_t os_bank_indicator = get_os_bank_indicator();
+
+    uint8_t isqCFW = CoreOS_Bank_IsqCFW(os_bank_indicator);
     uint8_t qcfw_lite_flag = get_qcfw_lite_flag();
 
-    uint16_t fwVersion = CoreOS_CurrentBank_GetFWVersion();
+    uint16_t fwVersion = CoreOS_Bank_GetFWVersion(os_bank_indicator);
 
     {
         uint64_t lv1FileAddress;
@@ -93,7 +95,7 @@ FUNC_DEF void Stage2()
             {
                 puts("Searching for lv1.elf...\n");
 
-                if (CoreOS_FindFileEntry_CurrentBank("lv1.elf", &lv1FileAddress, &lv1FileSize))
+                if (CoreOS_FindFileEntry_Bank(os_bank_indicator, "lv1.elf", &lv1FileAddress, &lv1FileSize))
                     foundlv1file = 1;
                 else
                     puts("File not found!\n");
@@ -106,7 +108,7 @@ FUNC_DEF void Stage2()
                 uint64_t zelfFileAddress;
                 uint64_t zelfFileSize;
 
-                if (CoreOS_FindFileEntry_CurrentBank("lv1.zelf", &zelfFileAddress, &zelfFileSize))
+                if (CoreOS_FindFileEntry_Bank(os_bank_indicator, "lv1.zelf", &zelfFileAddress, &zelfFileSize))
                 {
                     foundlv1file = 1;
 
@@ -168,7 +170,7 @@ FUNC_DEF void Stage2()
             else
             {
                 puts("Searching for lv1.diff...\n");
-                CoreOS_FindFileEntry_CurrentBank("lv1.diff", &lv1DiffFileAddress, &lv1DiffFileSize);
+                CoreOS_FindFileEntry_Bank(os_bank_indicator, "lv1.diff", &lv1DiffFileAddress, &lv1DiffFileSize);
             }
 
             if (lv1DiffFileAddress != 0)
@@ -259,16 +261,6 @@ FUNC_DEF void Stage2()
                 puts("Patch failed!\n");
         }
 
-        {
-            puts("Patching lv0/lv1 protection...\n");
-
-            uint8_t searchData[] = {0x2F, 0x83, 0x00, 0x00, 0x38, 0x60, 0x00, 0x01, 0x41, 0x9E, 0x00, 0x20, 0xE8, 0x62, 0x8A, 0xB8, 0x48, 0x01, 0xE6, 0x49, 0x38, 0x60, 0x00, 0x04, 0x38, 0x80, 0x00, 0x00};
-            uint8_t replaceData[] = {0x2F, 0x83, 0x00, 0x00, 0x38, 0x60, 0x00, 0x01, 0x48, 0x00};
-
-            if (!SearchAndReplace((void *)0x0, patchSearchSize, searchData, sizeof(searchData), replaceData, sizeof(replaceData)))
-                puts("Patch failed!\n");
-        }
-
 #if 0
 
         // not working on 28nm
@@ -293,7 +285,7 @@ FUNC_DEF void Stage2()
 
             //
 
-            ctx->cached_os_bank_indicator = sc_read_os_bank_indicator();
+            ctx->cached_os_bank_indicator = os_bank_indicator;
 
             puts("cached_os_bank_indicator = ");
             print_hex(ctx->cached_os_bank_indicator);
@@ -301,7 +293,7 @@ FUNC_DEF void Stage2()
 
             //
 
-            ctx->cached_qcfw_lite_flag = sc_read_qcfw_lite_flag();
+            ctx->cached_qcfw_lite_flag = qcfw_lite_flag;
 
             puts("cached_qcfw_lite_flag = ");
             print_hex(ctx->cached_qcfw_lite_flag);
@@ -317,7 +309,7 @@ FUNC_DEF void Stage2()
 
             ctx->cached_myappldrElfAddress = 0;
 
-            CoreOS_FindFileEntry_CurrentBank("myappldr.elf", &ctx->cached_myappldrElfAddress, NULL);
+            CoreOS_FindFileEntry_Bank(os_bank_indicator, "myappldr.elf", &ctx->cached_myappldrElfAddress, NULL);
 
             puts("cached_myappldrElfAddress = ");
             print_hex(ctx->cached_myappldrElfAddress);

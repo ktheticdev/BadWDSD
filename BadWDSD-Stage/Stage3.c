@@ -261,6 +261,8 @@ FUNC_DEF void Stage3()
             lv1_write(0x309E4C, 32, patches);
         }
 
+#if 1
+
         // HTAB
 
         {
@@ -341,6 +343,8 @@ FUNC_DEF void Stage3()
                 lv1_write(0x2E5550, 28, patches);
             }
         }
+
+#endif
 
 #if 0
 
@@ -648,7 +652,7 @@ FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
             lv1_print_hex(lv2AreaAddrRa);
             lv1_puts("\n");
 
-            ApplyLv2Diff(lv2AreaAddrRa, 1, 1);
+            ApplyLv2Diff(lv2AreaAddrRa, 1, 0);
 
             {
                 uint8_t qcfw_lite_flag = get_qcfw_lite_flag();
