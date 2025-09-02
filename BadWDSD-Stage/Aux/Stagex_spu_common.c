@@ -193,6 +193,9 @@ void SubmitDMACmd(struct DMACmd_s* cmd)
 
 void DMARead(void* ls, uint64_t ea, uint32_t size)
 {
+    if (size == 0)
+        return;
+
     static const uint32_t maxChunkSize = (16 * 1024);
 
     uint32_t left = size;
@@ -238,6 +241,9 @@ void DMARead(void* ls, uint64_t ea, uint32_t size)
 
 void DMAWrite(const void* ls, uint64_t ea, uint32_t size)
 {
+    if (size == 0)
+        return;
+    
     static const uint32_t maxChunkSize = (16 * 1024);
 
     uint32_t left = size;
