@@ -4,13 +4,7 @@
 FUNC_DEF void Stage1()
 {
     real_sc_puts_init();
-    sc_puts("BadWDSD Stage1 by Kafuu(aomsin2526)\n");
-
-    puts("(Build Date: ");
-    puts(__DATE__);
-    puts(" ");
-    puts(__TIME__);
-    puts(")\n");
+    sc_puts("BadWDSD Stage1 by Kafuu(aomsin2526)" " (Build Date: " __DATE__ " " __TIME__ ")\n");
 
     sc_triple_beep();
 
