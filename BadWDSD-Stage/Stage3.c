@@ -267,6 +267,7 @@ FUNC_DEF void Stage3()
 
 #endif
 
+    eieio();
     lv1_puts("Stage3 done.\n");
 }
 

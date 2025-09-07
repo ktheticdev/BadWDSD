@@ -1,5 +1,8 @@
 #undef ENTRY_WAIT_IN_MS
 
+#pragma GCC push_options
+#pragma GCC optimize("O0")
+
 FUNC_DEF void ApplyLv1Diff(uint64_t lv1DiffFileAddress, uint8_t verifyOrig)
 {
     puts("ApplyLv1Diff()\n");
@@ -63,9 +66,6 @@ FUNC_DEF void ApplyLv1Diff(uint64_t lv1DiffFileAddress, uint8_t verifyOrig)
     eieio();
     puts("ApplyLv1Diff() done.\n");
 }
-
-#pragma GCC push_options
-#pragma GCC optimize("O0")
 
 FUNC_DEF void Stage2()
 {
