@@ -428,7 +428,12 @@ FUNC_DEF void SPU_DecryptLv0Self(uint64_t spu_id, void* inDest, const void* inSr
     puts("SPU_DecryptLv0Self() done.\n");
 }
 
-FUNC_DEF void spu_stage2(uint64_t spu_id)
+struct __attribute__((aligned(8))) Stagex_spu_job_stage2_context_s
+{
+    uint8_t patch_aim;
+};
+
+FUNC_DEF void spu_stage2(uint64_t spu_id, const struct Stagex_spu_job_stage2_context_s* job_context)
 {
     puts("spu_stage2()\n");
 
@@ -442,6 +447,10 @@ FUNC_DEF void spu_stage2(uint64_t spu_id)
             context.jobType = 5;
 
             memcpy((void*)SPU_CalcMMIOAddress_LS(spu_id, 0x100), &context, sizeof(context));
+        }
+
+        {
+            memcpy((void*)SPU_CalcMMIOAddress_LS(spu_id, 0x200), job_context, sizeof(struct Stagex_spu_job_stage2_context_s));
         }
 
         eieio();

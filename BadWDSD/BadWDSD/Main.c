@@ -382,6 +382,10 @@ void main()
     vreg_set_voltage(VREG_VOLTAGE_1_30);
     set_sys_clock_khz(250000, true);
 
+#if !PICO_IS_ZERO
+    GPIO_FLOATTOHIGH(TRISTATE_PIN_ID);
+#endif
+
 #if DEBUG_UART_ENABLED
     DebugUart_Init();
 #endif

@@ -396,3 +396,9 @@ extern void DebugUart_Puts(const char* buf);
 #include "Aes.h"
 
 //
+
+#if !PICO_IS_ZERO
+static const uint32_t TRISTATE_PIN_ID = 21;
+#endif
+
+//

@@ -30,8 +30,8 @@ void Stagex_spu_job_aes128_decrypt_ctr(const volatile struct Stagex_spu_job_aes1
     struct aes_decrypt_ctr_stream_context_s aes_ctx;
     aes_decrypt_ctr_stream_init(&aes_ctx, job_context->size, aes_key, 128, job_context->iv);
 
-    //static const uint32_t tmpBufSize = (128 * 1024);
-    //uint8_t *tmpBuf = (uint8_t *)0x10000;
+    // static const uint32_t tmpBufSize = (128 * 1024);
+    // uint8_t *tmpBuf = (uint8_t *)0x10000;
 
     uint64_t left = job_context->size;
 
@@ -292,7 +292,7 @@ void Stagex_spu_job_stage3()
 
     {
         {
-            //lv1_puts("Installing hvcall peek64(34)\n");
+            // lv1_puts("Installing hvcall peek64(34)\n");
 
             uint64_t code_addr = 0x130;
 
@@ -304,7 +304,7 @@ void Stagex_spu_job_stage3()
         }
 
         {
-            //lv1_puts("Installing hvcall poke64(35)\n");
+            // lv1_puts("Installing hvcall poke64(35)\n");
 
             uint64_t code_addr = 0x140;
 
@@ -317,7 +317,7 @@ void Stagex_spu_job_stage3()
         }
 
         {
-            //lv1_puts("Installing hvcall exec(36)\n");
+            // lv1_puts("Installing hvcall exec(36)\n");
 
             uint64_t code_addr = 0x150;
 
@@ -337,7 +337,7 @@ void Stagex_spu_job_stage3()
         }
 
         {
-            //lv1_puts("Installing hvcall peek32(37)\n");
+            // lv1_puts("Installing hvcall peek32(37)\n");
 
             uint64_t code_addr = 0x180;
 
@@ -349,7 +349,7 @@ void Stagex_spu_job_stage3()
         }
 
         {
-            //lv1_puts("Installing hvcall poke32(38)\n");
+            // lv1_puts("Installing hvcall poke32(38)\n");
 
             uint64_t code_addr = 0x190;
 
@@ -447,7 +447,7 @@ struct __attribute__((aligned(8))) Stagex_spu_job_DecryptLv0Self_context_s
     uint64_t inSrcEa;
 };
 
-void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptLv0Self_context_s* job_context)
+void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptLv0Self_context_s *job_context)
 {
     uint64_t curDestEa = job_context->inDestEa;
     uint64_t curSrcEa = job_context->inSrcEa;
@@ -463,11 +463,11 @@ void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptL
     meta_key[1] = (0x98CCD7D363EA2AF0);
     meta_key[2] = (0xC326E65081E0630C);
     meta_key[3] = (0xB9AB2D215865878A);
-    
+
     uint64_t meta_iv[2];
     meta_iv[0] = (0xF9205F46F6021697);
     meta_iv[1] = (0xE670F13DFA726212);
-    
+
     WORD meta_aes_key[60];
     aes_key_setup((const uint8_t *)meta_key, meta_aes_key, 256);
 
@@ -477,10 +477,10 @@ void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptL
     DMARead(&metaInfo, curSrcEa, sizeof(metaInfo));
 
     aes_decrypt_cbc(
-        (const uint8_t*)&metaInfo,
+        (const uint8_t *)&metaInfo,
         sizeof(metaInfo),
 
-        (uint8_t*)&metaInfo,
+        (uint8_t *)&metaInfo,
 
         meta_aes_key,
         256,
@@ -493,7 +493,7 @@ void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptL
     aes_key_setup((const uint8_t *)metaInfo.key, meta_header_key, 128);
 
     uint64_t metasSize = (sceHeader.file_offset) - sizeof(struct SceHeader_s) + (sceHeader.ext_header_size) + sizeof(struct SceMetaInfo_s);
-    uint8_t* metasBuf = (uint8_t*)0x20000; // [16384]
+    uint8_t *metasBuf = (uint8_t *)0x20000; // [16384]
     DMARead(metasBuf, curSrcEa, metasSize);
 
     aes_decrypt_ctr(
@@ -506,7 +506,7 @@ void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptL
         meta_header_key,
         128,
 
-        (const uint8_t*)metaInfo.iv
+        (const uint8_t *)metaInfo.iv
 
     );
 
@@ -514,7 +514,7 @@ void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptL
     struct SceMetaSectionHeader_s *metaSectionHeaders = (struct SceMetaSectionHeader_s *)&metasBuf[sizeof(struct SceMetaHeader_s)];
     struct SceMetaKey_s *metaKeys = (struct SceMetaKey_s *)&metasBuf[sizeof(struct SceMetaHeader_s) + ((metaHeader->section_entry_num) * sizeof(struct SceMetaSectionHeader_s))];
 
-    uint8_t* tmpBuf = (uint8_t*)0x24000; // [16384]
+    uint8_t *tmpBuf = (uint8_t *)0x24000; // [16384]
 
     struct ElfHeader_s elfHeader;
     DMARead(&elfHeader, (job_context->inSrcEa + 0x90), sizeof(elfHeader));
@@ -528,11 +528,11 @@ void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptL
         DMAWrite(tmpBuf, curDestEa, copySize);
     }
 
-    const struct ElfPhdr_s* elfPhdrs = (const struct ElfPhdr_s*)tmpBuf;
+    const struct ElfPhdr_s *elfPhdrs = (const struct ElfPhdr_s *)tmpBuf;
 
     for (uint16_t i = 0; i < elfHeader.e_phnum; ++i)
     {
-        struct ElfPhdr_s* phdr = &elfPhdrs[i];
+        struct ElfPhdr_s *phdr = &elfPhdrs[i];
 
         struct SceMetaSectionHeader_s *h = &metaSectionHeaders[i];
 
@@ -552,11 +552,16 @@ void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptL
 
         decrypt.size = h->segment_size;
 
-        Stagex_spu_job_aes128_decrypt_ctr(&decrypt, (uint8_t*)0x10000, (64 * 1024));
+        Stagex_spu_job_aes128_decrypt_ctr(&decrypt, (uint8_t *)0x10000, (64 * 1024));
     }
 }
 
-void Stagex_spu_job_stage2()
+struct __attribute__((aligned(8))) Stagex_spu_job_stage2_context_s
+{
+    uint8_t patch_aim;
+};
+
+void Stagex_spu_job_stage2(const volatile struct Stagex_spu_job_stage2_context_s *job_context)
 {
     static const uint32_t tmpBufSize = (128 * 1024);
     uint8_t *tmpBuf = (uint8_t *)0x10000;
@@ -571,6 +576,11 @@ void Stagex_spu_job_stage2()
 
     uint8_t found_fsm = 0;
 
+    uint8_t found_aim_get_device_type = 0;
+    uint8_t found_aim_get_device_id = 0;
+
+    uint8_t found_aim_get_ps_code = 0;
+
     for (uint64_t tmpBuf_CurEaAddr = 0; tmpBuf_CurEaAddr < (8 * 1024 * 1024); tmpBuf_CurEaAddr += tmpBufSize)
     {
         DMARead(tmpBuf, tmpBuf_CurEaAddr, tmpBufSize);
@@ -581,10 +591,10 @@ void Stagex_spu_job_stage2()
 
             if (!found_CoreOSHashCheck)
             {
-                //puts("Patching CoreOS hash check...\n");
+                // puts("Patching CoreOS hash check...\n");
 
                 __attribute__((aligned(16))) static const uint8_t searchData[] = {0x88, 0x18, 0x00, 0x36, 0x2F, 0x80, 0x00, 0xFF, 0x41, 0x9E, 0x00, 0x1C, 0x7F, 0x63, 0xDB, 0x78, 0xE8, 0xA2, 0x85, 0x78};
-                static const uint8_t replaceData[] = {0x88, 0x18, 0x00, 0x36, 0x2F, 0x80, 0x00, 0xFF, 0x60, 0x00, 0x00, 0x00, 0x7F, 0x63, 0xDB, 0x78, 0xE8, 0xA2, 0x85, 0x78};
+                __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x88, 0x18, 0x00, 0x36, 0x2F, 0x80, 0x00, 0xFF, 0x60, 0x00, 0x00, 0x00, 0x7F, 0x63, 0xDB, 0x78, 0xE8, 0xA2, 0x85, 0x78};
 
                 if (!memcmp32(&tmpBuf[i], searchData, sizeof(searchData)))
                 {
@@ -595,7 +605,7 @@ void Stagex_spu_job_stage2()
 
             if (!found_disable_erase_hash_standby_bank_and_fsm)
             {
-                //puts("Patching disable_erase_hash_standby_bank_and_fsm (ANTI BRICK & EXIT FSM)...\n");
+                // puts("Patching disable_erase_hash_standby_bank_and_fsm (ANTI BRICK & EXIT FSM)...\n");
 
                 __attribute__((aligned(16))) static const uint8_t searchData[] = {0xF8, 0x21, 0xFE, 0xC1, 0x7C, 0x08, 0x02, 0xA6, 0xFB, 0x41, 0x01, 0x10, 0x3B, 0x41, 0x00, 0x70, 0xFB, 0xA1, 0x01, 0x28, 0x7C, 0x7D, 0x1B, 0x78, 0x7F, 0x43, 0xD3, 0x78};
                 __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x7C, 0x08, 0x02, 0xA6, 0x38, 0x21, 0xFF, 0xC0, 0xF8, 0x01, 0x00, 0x00, 0x3D, 0x20, 0x80, 0x00, 0x61, 0x29, 0x41, 0x24, 0x79, 0x29, 0x00, 0x20, 0x38, 0x60, 0x00, 0xFF, 0x38, 0x80, 0x00, 0xFF, 0x7D, 0x29, 0x03, 0xA6, 0x4E, 0x80, 0x04, 0x21, 0xE8, 0x01, 0x00, 0x00, 0x38, 0x21, 0x00, 0x40, 0x38, 0x60, 0x00, 0x00, 0x7C, 0x08, 0x03, 0xA6, 0x4E, 0x80, 0x00, 0x20};
@@ -609,7 +619,7 @@ void Stagex_spu_job_stage2()
 
             if (!found_get_version_and_hash)
             {
-                //puts("Patching get_version_and_hash (ANTI BRICK & Downgrading)...\n");
+                // puts("Patching get_version_and_hash (ANTI BRICK & Downgrading)...\n");
 
                 __attribute__((aligned(16))) static const uint8_t searchData[] = {0x4B, 0xFF, 0x45, 0xD1, 0xE8, 0x1F, 0x00, 0x80, 0xF8, 0x1C, 0x00, 0x00, 0x38, 0x9D, 0x00, 0x08};
                 __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x38, 0x00, 0x30, 0x06, 0x78, 0x00, 0x26, 0xC6, 0xF8, 0x1C, 0x00, 0x00, 0x38, 0x9D, 0x00, 0x08};
@@ -623,7 +633,7 @@ void Stagex_spu_job_stage2()
 
             if (!found_hvcall_114_1)
             {
-                //puts("Patching hvcall 114 1...\n");
+                // puts("Patching hvcall 114 1...\n");
 
                 __attribute__((aligned(16))) static const uint8_t searchData[] = {0x2F, 0x80, 0x00, 0x00, 0x41, 0x9E, 0x00, 0x28, 0x38, 0x60, 0x00, 0x00, 0x38, 0x80, 0x00, 0x00};
                 __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x60, 0x00, 0x00, 0x00, 0x48, 0x00, 0x00, 0x28, 0x38, 0x60, 0x00, 0x00, 0x38, 0x80, 0x00, 0x00};
@@ -637,10 +647,10 @@ void Stagex_spu_job_stage2()
 
             if (!found_hvcall_114_2)
             {
-                //puts("Patching hvcall 114 2...\n");
+                // puts("Patching hvcall 114 2...\n");
 
-                __attribute__((aligned(16))) static const uint8_t searchData[] = { 0x7C, 0x08, 0x03, 0x78, 0x39, 0x20, 0x00, 0x00, 0x4B, 0xFF, 0xFB, 0xFD, 0x7C, 0x60, 0x1B, 0x78 };
-                __attribute__((aligned(16))) static const uint8_t replaceData[] = { 0x7C, 0x08, 0x03, 0x78, 0x39, 0x20, 0x00, 0x01, 0x4B, 0xFF, 0xFB, 0xFD, 0x7C, 0x60, 0x1B, 0x78 };
+                __attribute__((aligned(16))) static const uint8_t searchData[] = {0x7C, 0x08, 0x03, 0x78, 0x39, 0x20, 0x00, 0x00, 0x4B, 0xFF, 0xFB, 0xFD, 0x7C, 0x60, 0x1B, 0x78};
+                __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x7C, 0x08, 0x03, 0x78, 0x39, 0x20, 0x00, 0x01, 0x4B, 0xFF, 0xFB, 0xFD, 0x7C, 0x60, 0x1B, 0x78};
 
                 if (!memcmp32(&tmpBuf[i], searchData, sizeof(searchData)))
                 {
@@ -651,7 +661,7 @@ void Stagex_spu_job_stage2()
 
             if (!found_fsm)
             {
-                //puts("Patching FSM...\n");
+                // puts("Patching FSM...\n");
 
                 __attribute__((aligned(16))) static const uint8_t searchData[] = {0x80, 0x01, 0x00, 0x74, 0x7F, 0xC3, 0xF3, 0x78, 0xE8, 0xA2, 0x84, 0xE8, 0x38, 0x80, 0x00, 0x01};
                 __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x38, 0x00, 0x00, 0xFF, 0x7F, 0xC3, 0xF3, 0x78, 0xE8, 0xA2, 0x84, 0xE8, 0x38, 0x80, 0x00, 0x01};
@@ -660,6 +670,45 @@ void Stagex_spu_job_stage2()
                 {
                     DMAWrite(replaceData, curEaAddr, sizeof(replaceData));
                     found_fsm = 1;
+                }
+            }
+
+            if (job_context->patch_aim)
+            {
+                if (!found_aim_get_device_type)
+                {
+                    __attribute__((aligned(16))) static const uint8_t searchData[] = {0xF8, 0x21, 0xFF, 0x61, 0x7C, 0x08, 0x02, 0xA6, 0xF8, 0x81, 0x00, 0x70, 0xF8, 0x01, 0x00, 0xB0, 0x38, 0x00, 0x00, 0x00, 0x38, 0xA1, 0x00, 0x78, 0x38, 0x81, 0x00, 0x80, 0x38, 0xC1, 0x00, 0x70, 0xF8, 0x01, 0x00, 0x80, 0x38, 0x00, 0x00, 0x10, 0xFB, 0xE1, 0x00, 0x98, 0xF8, 0x01, 0x00, 0x78, 0x48, 0x00, 0x02, 0xF1, 0xE8, 0xA2, 0x82, 0x80, 0x7C, 0x7F, 0x1B, 0x78, 0xE8, 0x62, 0x82, 0x60};
+                    __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x38, 0xC0, 0x00, 0x00, 0xB0, 0xC4, 0x00, 0x00, 0x38, 0xC0, 0x00, 0x00, 0xB0, 0xC4, 0x00, 0x02, 0x38, 0xC0, 0x00, 0x00, 0xB0, 0xC4, 0x00, 0x04, 0x38, 0xC0, 0x00, 0x00, 0xB0, 0xC4, 0x00, 0x06, 0x38, 0xC0, 0x00, 0x00, 0xB0, 0xC4, 0x00, 0x08, 0x38, 0xC0, 0x00, 0x00, 0xB0, 0xC4, 0x00, 0x0A, 0x38, 0xC0, 0x00, 0x00, 0xB0, 0xC4, 0x00, 0x0C, 0x38, 0xC0, 0x00, 0x82, 0xB0, 0xC4, 0x00, 0x0E, 0x38, 0x60, 0x00, 0x00, 0x4E, 0x80, 0x00, 0x20};
+
+                    if (!memcmp32(&tmpBuf[i], searchData, sizeof(searchData)))
+                    {
+                        DMAWrite(replaceData, curEaAddr, sizeof(replaceData));
+                        found_aim_get_device_type = 1;
+                    }
+                }
+
+                if (!found_aim_get_device_id)
+                {
+                    __attribute__((aligned(16))) static const uint8_t searchData[] = {0xF8, 0x21, 0xFF, 0x61, 0x7C, 0x08, 0x02, 0xA6, 0xF8, 0x81, 0x00, 0x70, 0xF8, 0x01, 0x00, 0xB0, 0x38, 0x00, 0x00, 0x00, 0x38, 0xA1, 0x00, 0x78, 0x38, 0x81, 0x00, 0x80, 0x38, 0xC1, 0x00, 0x70, 0xF8, 0x01, 0x00, 0x80, 0x38, 0x00, 0x00, 0x10, 0xFB, 0xE1, 0x00, 0x98, 0xF8, 0x01, 0x00, 0x78, 0x48, 0x00, 0x03, 0x61, 0xE8, 0xA2, 0x82, 0x78, 0x7C, 0x7F, 0x1B, 0x78, 0xE8, 0x62, 0x82, 0x60};
+                    __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x38, 0xC0, 0x00, 0x00, 0xB0, 0xC4, 0x00, 0x00, 0x38, 0xC0, 0x00, 0x01, 0xB0, 0xC4, 0x00, 0x02, 0x38, 0xC0, 0x00, 0x82, 0xB0, 0xC4, 0x00, 0x04, 0x38, 0xC0, 0x00, 0x01, 0xB0, 0xC4, 0x00, 0x06, 0x38, 0xC0, 0x04, 0x00, 0xB0, 0xC4, 0x00, 0x08, 0x38, 0xC0, 0x23, 0xBB, 0xB0, 0xC4, 0x00, 0x0A, 0x38, 0xC0, 0x5E, 0xDF, 0xB0, 0xC4, 0x00, 0x0C, 0x38, 0xC0, 0x37, 0x05, 0xB0, 0xC4, 0x00, 0x0E, 0x38, 0x60, 0x00, 0x00, 0x4E, 0x80, 0x00, 0x20};
+
+                    if (!memcmp32(&tmpBuf[i], searchData, sizeof(searchData)))
+                    {
+                        DMAWrite(replaceData, curEaAddr, sizeof(replaceData));
+                        found_aim_get_device_id = 1;
+                    }
+                }
+
+                if (!found_aim_get_ps_code)
+                {
+                    __attribute__((aligned(16))) static const uint8_t searchData[] = {0xF8, 0x21, 0xFF, 0x61, 0x7C, 0x08, 0x02, 0xA6, 0xF8, 0x81, 0x00, 0x70, 0xF8, 0x01, 0x00, 0xB0, 0x38, 0x00, 0x00, 0x00, 0x38, 0xA1, 0x00, 0x78, 0x38, 0x81, 0x00, 0x80, 0x38, 0xC1, 0x00, 0x70, 0xF8, 0x01, 0x00, 0x80, 0x38, 0x00, 0x00, 0x08, 0xFB, 0xE1, 0x00, 0x98, 0xF8, 0x01, 0x00, 0x78, 0x48, 0x00, 0x03, 0xD1, 0xE8, 0xA2, 0x82, 0x70, 0x7C, 0x7F, 0x1B, 0x78, 0xE8, 0x62, 0x82, 0x60};
+                    __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x38, 0xC0, 0x00, 0x01, 0xB0, 0xC4, 0x00, 0x00, 0x38, 0xC0, 0x00, 0x82, 0xB0, 0xC4, 0x00, 0x02, 0x38, 0xC0, 0x00, 0x01, 0xB0, 0xC4, 0x00, 0x04, 0x38, 0xC0, 0x00, 0x01, 0xB0, 0xC4, 0x00, 0x06, 0x38, 0x60, 0x00, 0x00, 0x4E, 0x80, 0x00, 0x20};
+
+                    if (!memcmp32(&tmpBuf[i], searchData, sizeof(searchData)))
+                    {
+                        DMAWrite(replaceData, curEaAddr, sizeof(replaceData));
+                        found_aim_get_ps_code = 1;
+                    }
                 }
             }
         }
@@ -694,7 +743,7 @@ void main()
             const volatile struct Stagex_spu_context_s *context = (const volatile struct Stagex_spu_context_s *)0x100;
 
             if (context->jobType == 1)
-                Stagex_spu_job_aes128_decrypt_ctr((const volatile struct Stagex_spu_job_aes128_decrypt_ctr_context_s *)0x200, (uint8_t*)0x10000, (128 * 1024));
+                Stagex_spu_job_aes128_decrypt_ctr((const volatile struct Stagex_spu_job_aes128_decrypt_ctr_context_s *)0x200, (uint8_t *)0x10000, (128 * 1024));
             else if (context->jobType == 2)
                 Stagex_spu_job_zlib_decompress((volatile struct Stagex_spu_job_zlib_decompress_context_s *)0x200);
             else if (context->jobType == 3)
@@ -702,7 +751,7 @@ void main()
             else if (context->jobType == 4)
                 Stagex_spu_job_DecryptLv0Self((const volatile struct Stagex_spu_job_DecryptLv0Self_context_s *)0x200);
             else if (context->jobType == 5)
-                Stagex_spu_job_stage2();
+                Stagex_spu_job_stage2((const volatile struct Stagex_spu_job_stage2_context_s *)0x200);
             else
                 stop(3);
 

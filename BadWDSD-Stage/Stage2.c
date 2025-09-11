@@ -146,7 +146,7 @@ FUNC_DEF void Stage2()
 
         {
             uint64_t lv1DiffFileAddress = 0;
-            uint64_t lv1DiffFileSize;
+            uint64_t lv1DiffFileSize = 0;
 
             if (!isqCFW && (qcfw_lite_flag == 0x1))
             {
@@ -192,9 +192,18 @@ FUNC_DEF void Stage2()
         //static const uint64_t patchSearchSize = (8 * 1024 * 1024);
 
         {
+            struct Stagex_spu_job_stage2_context_s job_context;
+            job_context.patch_aim = 0;
+
+            if (isqCFW)
+            {
+                if (CoreOS_FindFileEntry_CurrentBank("lv2Rkernel.self", NULL, NULL))
+                    job_context.patch_aim = 1;
+            }
+
             uint64_t spu_id = 0;
             uint64_t spu_old_mfc_sr1 = SpuAux_Init(spu_id);
-            spu_stage2(spu_id);
+            spu_stage2(spu_id, &job_context);
             SpuAux_Uninit(spu_id, spu_old_mfc_sr1);
         }
 
