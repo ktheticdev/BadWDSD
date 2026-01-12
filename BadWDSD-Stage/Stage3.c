@@ -441,39 +441,6 @@ FUNC_DEF void LoadLv2(uint64_t srcAddr, uint64_t loadme_addr)
 #pragma GCC push_options
 // #pragma GCC optimize("O0")
 
-FUNC_DECL uint64_t Stage3_IsIgnoreSrc(uint64_t laid)
-{
-    lv1_puts("Stage3_IsIgnoreSrc()\n");
-
-    lv1_puts("laid = ");
-    lv1_print_hex(laid);
-    lv1_puts("\n");
-
-    if (laid != 0x1070000002000001)
-        return 0; // not ignore
-
-    const char *searchData = "/flh/os/lv2_kernel.self";
-    uint64_t searchDataSize = strlen(searchData) + 1;
-
-    {
-        uint8_t found = 0;
-
-        for (uint64_t i = 0; i < 0x200000; i += 4)
-        {
-            if (memcmp((void *)i, searchData, searchDataSize))
-                continue;
-
-            found = 1;
-            break;
-        }
-
-        if (found)
-            return 0x3333; // ignore
-    }
-
-    return 0; // not ignore
-}
-
 FUNC_DEF void Stage3_AuthLv2(uint64_t laid)
 {
     lv1_puts("Stage3_AuthLv2(), laid = ");
@@ -533,16 +500,6 @@ __attribute__((section("main3"))) void stage3_main()
     uint64_t r5_2 = r5;
     uint64_t r6_2 = r6;
     uint64_t r7_2 = r7;
-
-    if (r5_2 == 0x89)
-    {
-        struct Stagex_Context_s *ctx = GetStagexContext();
-        ctx->stage3_ignoreSrc = Stage3_IsIgnoreSrc(r6_2);
-
-        r5 = ctx->stage3_ignoreSrc;
-        asm volatile("mr %0, %1" :"=r"(r6):"r"(r5):); // r6 = r5
-        return;
-    }
 
     // peekpoke64
     if (r5_2 == 0x1)
@@ -648,7 +605,7 @@ __attribute__((section("main3"))) void stage3_main()
     }
 #endif
 
-    if ((r5_2 != 0x0) && (r5_2 != 0x30) && (r5_2 != 0x31))
+    if ((r5_2 != 0x0) && (r5_2 != 0x30) && (r5_2 != 0x31)) // todo only 0x31? (after spp load_profile)
         return;
 
     struct Stagex_Context_s *ctx = GetStagexContext();

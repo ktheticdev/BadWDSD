@@ -270,7 +270,7 @@ void DMARead(void *ls, uint64_t ea, uint32_t size)
         struct DMACmd_s cmd;
         cmd.cmd = MFC_GET_CMD;
 
-        if (unalign)
+        if (unalign != 0)
         {
             chunkSize = 1;
 
@@ -336,7 +336,7 @@ void DMAWrite(const void *ls, uint64_t ea, uint32_t size)
         struct DMACmd_s cmd;
         cmd.cmd = MFC_PUT_CMD;
 
-        if (unalign)
+        if (unalign != 0)
         {
             chunkSize = 1;
 

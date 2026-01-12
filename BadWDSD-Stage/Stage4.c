@@ -57,19 +57,7 @@ FUNC_DEF void Stage4()
 
     *((uint64_t *)loadme_addr) = 0;
 
-    struct Stagex_Context_s* ctx = GetStagexContext();
-
     uint64_t srcAddr = 0xC000000;
-
-    if (ctx->stage3_ignoreSrc == 0x3333) // src ignored
-    {
-        if (!CoreOS_FindFileEntry_CurrentBank("lv2_kernel.self", &srcAddr, NULL))
-        {
-            lv1_puts("lv2_kernel.self not found!\n");
-            dead_beep();
-        }
-    }
-
     LoadLv2(srcAddr, loadme_addr);
 
     lv1_puts("Stage4 done.\n");

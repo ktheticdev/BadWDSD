@@ -12,11 +12,7 @@ FUNC_DEF void Stage1()
 
     HW_Init_SPU();
 
-    // Memtest();
-    // PatternTest_x16();
-    // PatternTest_x32();
-
-    // puts("hello superslim :)\n");
+    //
 
     uint8_t real_os_bank_indicator = sc_read_os_bank_indicator();
     

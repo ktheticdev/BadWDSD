@@ -7,8 +7,6 @@
 
 # inros.bin (OFW)
 
-# lv0.elf (OFW)
-
 # lv1.elf.orig (OFW)
 # lv1.elf (OFW or patched)
 
@@ -35,16 +33,10 @@ echo Building tools...
 cd $ROOT_DIR/tools/coreos_tools || exit 1
 ./build.sh || exit 1
 
-cd $ROOT_DIR/tools/lv0gen || exit 1
-./build.sh || exit 1
-
 cd $ROOT_DIR/tools/lv1gen || exit 1
 ./build.sh || exit 1
 
 cd $ROOT_DIR/tools/lv2gen || exit 1
-./build.sh || exit 1
-
-cd $ROOT_DIR/tools/zgen || exit 1
 ./build.sh || exit 1
 
 cd $ROOT_DIR || exit 1
@@ -52,9 +44,6 @@ cd $WORK_DIR || exit 1
 
 echo Delete workdir temp...
 rm -rf temp
-
-rm lv0.stage2j.elf
-rm lv0.stage2j.zelf
 
 rm lv1.stage3j3ja3jz5j6j.elf
 
@@ -72,7 +61,6 @@ rm -rf outros
 echo Copying needed files to temp...
 mkdir temp || exit 1
 
-cp $ROOT_DIR/BadWDSD-Stage/Stage2j.bin temp/Stage2j.bin || exit 1
 cp $ROOT_DIR/BadWDSD-Stage/Stage3j.bin temp/Stage3j.bin || exit 1
 cp $ROOT_DIR/BadWDSD-Stage/Stage3ja.bin temp/Stage3ja.bin || exit 1
 cp $ROOT_DIR/BadWDSD-Stage/Stage3jz.bin temp/Stage3jz.bin || exit 1
@@ -80,21 +68,13 @@ cp $ROOT_DIR/BadWDSD-Stage/Stage5j.bin temp/Stage5j.bin || exit 1
 cp $ROOT_DIR/BadWDSD-Stage/Stage6j.bin temp/Stage6j.bin || exit 1
 
 cp $ROOT_DIR/tools/coreos_tools/coreos_tools temp/coreos_tools || exit 1
-cp $ROOT_DIR/tools/lv0gen/lv0gen temp/lv0gen || exit 1
 cp $ROOT_DIR/tools/lv1gen/lv1gen temp/lv1gen || exit 1
 cp $ROOT_DIR/tools/lv2gen/lv2gen temp/lv2gen || exit 1
-cp $ROOT_DIR/tools/zgen/zgen temp/zgen || exit 1
 
 echo Extracting inros.bin...
 mkdir inros
 
 temp/coreos_tools extract_coreos inros.bin inros || exit 1
-
-echo Install stage2j to lv0.elf...
-temp/lv0gen lv0gen lv0.elf lv0.stage2j.elf temp/Stage2j.bin || exit 1
-
-echo Generate lv0.stage2j.zelf...
-temp/zgen zelf_gen lv0.stage2j.elf lv0.stage2j.zelf || exit 1
 
 echo Install stage3j/3ja/3jz/5j/6j to lv1.elf...
 temp/lv1gen lv1gen_3jz lv1.elf lv1.stage3j3ja3jz5j6j.elf temp/Stage3j.bin temp/Stage3ja.bin temp/Stage3jz.bin temp/Stage5j.bin temp/Stage6j.bin || exit 1
@@ -113,9 +93,6 @@ rm outros/creserved_0
 
 #echo Deleting hdd_copy.self...
 #rm outros/hdd_copy.self
-
-#echo Copying lv0.stage2j.zelf to outros/lv0.zelf...
-#cp -a lv0.stage2j.zelf outros/lv0.zelf || exit 1
 
 echo Copying lv1.diff to outros/lv1.diff...
 cp -a lv1.diff outros/lv1.diff || exit 1

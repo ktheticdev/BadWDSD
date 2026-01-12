@@ -61,18 +61,6 @@ __attribute__((noreturn)) void stage4j_entry()
     // store src
     asm volatile("std 5, 24(1)");
 
-    // check isIgnoreSrc
-
-    r11 = 0x10003;
-
-    r4 = 0x6996;
-    r5 = 0x89;
-
-    r6 = r3;
-
-    SC();
-
-    if (r6 != 0x3333) // not working properly but whatever
     {
         // copy src starts
 
