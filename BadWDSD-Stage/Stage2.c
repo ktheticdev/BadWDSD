@@ -194,11 +194,15 @@ FUNC_DEF void Stage2()
         {
             struct Stagex_spu_job_stage2_context_s job_context;
             job_context.patch_aim = 0;
+            job_context.patch_inspect_package_tophalf = 0;
 
             if (isqCFW)
             {
                 if (CoreOS_FindFileEntry_CurrentBank("lv2Rkernel.self", NULL, NULL))
+                {
                     job_context.patch_aim = 1;
+                    job_context.patch_inspect_package_tophalf = 1;
+                }
             }
 
             uint64_t spu_id = 0;

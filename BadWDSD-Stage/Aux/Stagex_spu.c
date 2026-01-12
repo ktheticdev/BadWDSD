@@ -559,6 +559,7 @@ void Stagex_spu_job_DecryptLv0Self(const volatile struct Stagex_spu_job_DecryptL
 struct __attribute__((aligned(8))) Stagex_spu_job_stage2_context_s
 {
     uint8_t patch_aim;
+    uint8_t patch_inspect_package_tophalf;
 };
 
 void Stagex_spu_job_stage2(const volatile struct Stagex_spu_job_stage2_context_s *job_context)
@@ -580,6 +581,8 @@ void Stagex_spu_job_stage2(const volatile struct Stagex_spu_job_stage2_context_s
     uint8_t found_aim_get_device_id = 0;
 
     uint8_t found_aim_get_ps_code = 0;
+
+    uint8_t found_inspect_package_tophalf = 0;
 
     for (uint64_t tmpBuf_CurEaAddr = 0; tmpBuf_CurEaAddr < (8 * 1024 * 1024); tmpBuf_CurEaAddr += tmpBufSize)
     {
@@ -711,11 +714,32 @@ void Stagex_spu_job_stage2(const volatile struct Stagex_spu_job_stage2_context_s
                     }
                 }
             }
+
+            if (job_context->patch_inspect_package_tophalf)
+            {
+                if (!found_inspect_package_tophalf)
+                {
+                    __attribute__((aligned(16))) static const uint8_t searchData[] = {0x41, 0x9D, 0x00, 0xA8, 0x7B, 0xFD, 0x00, 0x20, 0x7F, 0x44, 0xD3, 0x78, 0x7F, 0xA5, 0xEB, 0x78, 0x7F, 0xC6, 0xF3, 0x78, 0x7E, 0xA3, 0xAB, 0x78, 0x40, 0x9A, 0x00, 0x90, 0x4B, 0xFF, 0xFD, 0x8D};
+                    __attribute__((aligned(16))) static const uint8_t replaceData[] = {0x40, 0x9D, 0x00, 0xA8, 0x7B, 0xFD, 0x00, 0x20, 0x7F, 0x44, 0xD3, 0x78, 0x7F, 0xA5, 0xEB, 0x78, 0x7F, 0xC6, 0xF3, 0x78, 0x7E, 0xA3, 0xAB, 0x78, 0x41, 0x9A, 0x00, 0x90, 0x4B, 0xFF, 0xFD, 0x8D};
+
+                    if (!memcmp32(&tmpBuf[i], searchData, sizeof(searchData)))
+                    {
+                        DMAWrite(replaceData, curEaAddr, sizeof(replaceData));
+                        found_inspect_package_tophalf = 1;
+                    }
+                }
+            }
         }
     }
 
     if (!found_disable_erase_hash_standby_bank_and_fsm || !found_get_version_and_hash)
         stop(8);
+
+    if (job_context->patch_inspect_package_tophalf)
+    {
+        if (!found_inspect_package_tophalf)
+            stop(8);
+    }
 }
 
 void main()

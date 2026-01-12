@@ -605,7 +605,8 @@ __attribute__((section("main3"))) void stage3_main()
     }
 #endif
 
-    if ((r5_2 != 0x0) && (r5_2 != 0x30) && (r5_2 != 0x31)) // todo only 0x31? (after spp load_profile)
+    // only 0x31 (after spp load_profile)
+    if (r5_2 != 0x31)
         return;
 
     struct Stagex_Context_s *ctx = GetStagexContext();
