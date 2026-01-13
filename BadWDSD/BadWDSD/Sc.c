@@ -21,12 +21,6 @@ void Sc_RxFn()
         if (strstr(scContext.rxBuf, "XDR Link"))
             trigger = true;
 
-        // if (strstr(scContext.rxBuf, "flash format"))
-        // trigger = true;
-
-        // if (strstr(scContext.rxBuf, "Press the button"))
-        // trigger = true;
-
         if (trigger)
         {
             scContext.trigger = true;
@@ -125,19 +119,14 @@ bool Sc_IsInited()
     return scIsInited;
 }
 
-bool Sc_GetScBypass()
+bool Sc_GetScLite()
 {
-    return !Gpio_GetOnce(SC_BYPASS_PIN_ID);
+    return !Gpio_GetOnce(SC_LITE_PIN_ID);
 }
 
 bool Sc_GetScBanksel()
 {
-    return Gpio_GetOnce(SC_BANKSEL_PIN_ID);
-}
-
-bool Sc_GetScRecovery()
-{
-    return !Gpio_GetOnce(SC_RECOVERY_PIN_ID);
+    return !Gpio_GetOnce(SC_BANKSEL_PIN_ID);
 }
 
 volatile struct Sc_SendCommandContext_s cmdCtx;
@@ -165,7 +154,6 @@ void Sc_Init()
     scIsInited = true;
     sync();
 
-    if (!Sc_GetScBypass())
     {
         PrintLog("SC Auth...\n");
         //busy_wait_ms(500);
@@ -386,7 +374,7 @@ void Sc_Init()
 
         {
             bool banksel = Sc_GetScBanksel();
-            bool recovery = Sc_GetScRecovery();
+            bool lite = Sc_GetScLite();
 
 #if SC_IS_SW
 
@@ -394,9 +382,9 @@ void Sc_Init()
             // Sc_Rx: # addr=00001211 num=01 val=03:B1
             // Sc_Rx: OK 00000000:3A
 
-            if (!banksel)
+            if (banksel)
             {
-                sprintf(cmdCtx.cmd, "w 1224 %s\r\n", banksel ? "ff" : "00");
+                sprintf(cmdCtx.cmd, "w 1224 %s\r\n", banksel ? "00" : "ff");
                 sprintf(cmdCtx.expectedResponse, "OK 00000000");
 
                 Sc_SendCommand(&cmdCtx);
@@ -410,7 +398,7 @@ void Sc_Init()
             }
 
             {
-                sprintf(cmdCtx.cmd, "w 1261 %s\r\n", recovery ? "00" : "ff");
+                sprintf(cmdCtx.cmd, "w f00 %s\r\n", lite ? "01" : "00");
                 sprintf(cmdCtx.expectedResponse, "OK 00000000");
 
                 Sc_SendCommand(&cmdCtx);
@@ -422,9 +410,9 @@ void Sc_Init()
             // Sc_Rx: [mullion]$ w 48c24 00
             // Sc_Rx: w complete!
 
-            if (!banksel)
+            if (banksel)
             {
-                sprintf(cmdCtx.cmd, "w 48c24 %s\r\n", banksel ? "ff" : "00");
+                sprintf(cmdCtx.cmd, "w 48c24 %s\r\n", banksel ? "00" : "ff");
                 sprintf(cmdCtx.expectedResponse, "w complete!");
 
                 Sc_SendCommand(&cmdCtx);
@@ -438,7 +426,7 @@ void Sc_Init()
             }
 
             {
-                sprintf(cmdCtx.cmd, "w 48c61 %s\r\n", recovery ? "00" : "ff");
+                sprintf(cmdCtx.cmd, "w 3000 %s\r\n", lite ? "01" : "00");
                 sprintf(cmdCtx.expectedResponse, "w complete!");
 
                 Sc_SendCommand(&cmdCtx);
@@ -446,7 +434,7 @@ void Sc_Init()
 
 #endif
 
-            if (!banksel)
+            if (banksel)
             {
                 Led_SetBlinkIntervalInMs(100);
                 Led_SetStatus(LED_STATUS_BLINK);
@@ -457,11 +445,6 @@ void Sc_Init()
 
                     Sc_Puts("shutdown\r\n");
                 }
-            }
-
-            if (recovery)
-            {
-                Sc_Puts("bringup\r\n");
             }
         }
     }

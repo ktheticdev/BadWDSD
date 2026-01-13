@@ -243,18 +243,6 @@ extern void Xdr_GenerateReadyWDSLData_x16(const uint8_t* inData, uint8_t* outWDS
 // inData[32], outWDSLData0[64]
 extern void Xdr_GenerateReadyWDSLData_x32(const uint8_t* inData, uint8_t* outWDSLData0);
 
-// Button
-
-//#define BUTTON_MODE_ENABLED 1
-
-#if PICO_IS_ZERO
-static const uint32_t BUTTON_PIN_ID = 26;
-#else
-static const uint32_t BUTTON_PIN_ID = 15;
-#endif
-
-extern void Button_Thread();
-
 //
 
 extern void GPIO_FLOATTOLOW(uint32_t pinId);
@@ -322,18 +310,15 @@ extern void Sc_Thread();
 extern bool Sc_IsInited();
 
 #if PICO_IS_ZERO
-static const uint32_t SC_BYPASS_PIN_ID = 3;
+static const uint32_t SC_LITE_PIN_ID = 3;
 static const uint32_t SC_BANKSEL_PIN_ID = 14;
-static const uint32_t SC_RECOVERY_PIN_ID = 15;
 #else
-static const uint32_t SC_BYPASS_PIN_ID = 14;
+static const uint32_t SC_LITE_PIN_ID = 14;
 static const uint32_t SC_BANKSEL_PIN_ID = 28;
-static const uint32_t SC_RECOVERY_PIN_ID = 22;
 #endif
 
-extern bool Sc_GetScBypass();
+extern bool Sc_GetScLite();
 extern bool Sc_GetScBanksel();
-extern bool Sc_GetScRecovery();
 
 extern void Sc_Init();
 
