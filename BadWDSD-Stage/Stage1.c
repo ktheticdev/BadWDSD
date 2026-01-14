@@ -23,12 +23,16 @@ FUNC_DEF void Stage1()
     if (request_os_bank_indicator == 0x1)
     {
         puts("Switching to ros0...\n");
+
         sc_write_os_bank_indicator(0xff);
+        sc_write_recovery_mode_flag(0xff);
     }
     else if (request_os_bank_indicator == 0x2)
     {
         puts("Switching to ros1...\n");
+        
         sc_write_os_bank_indicator(0x00);
+        sc_write_recovery_mode_flag(0xff);
     }
 
     sc_write_request_os_bank_indicator(0xff);

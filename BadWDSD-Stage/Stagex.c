@@ -1155,6 +1155,20 @@ FUNC_DEF void sc_write_os_bank_indicator(uint8_t val)
     sc_write_eeprom8(0x2, 0x24, val);
 }
 
+FUNC_DEF uint8_t sc_read_recovery_mode_flag()
+{
+    // block id (0x48C00)
+    // offset (0x48C61)
+    return sc_read_eeprom8(0x2, 0x61);
+}
+
+FUNC_DEF void sc_write_recovery_mode_flag(uint8_t val)
+{
+    // block id (0x48C00)
+    // offset (0x48C61)
+    sc_write_eeprom8(0x2, 0x61, val);
+}
+
 FUNC_DEF uint8_t sc_read_qcfw_lite_flag()
 {
     // block id (0x3000)
