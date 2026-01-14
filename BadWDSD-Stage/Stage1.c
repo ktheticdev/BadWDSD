@@ -14,6 +14,27 @@ FUNC_DEF void Stage1()
 
     //
 
+    uint8_t request_os_bank_indicator = sc_read_request_os_bank_indicator();
+
+    puts("request_os_bank_indicator = ");
+    print_hex(request_os_bank_indicator);
+    puts("\n");
+
+    if (request_os_bank_indicator == 0x1)
+    {
+        puts("Switching to ros0...\n");
+        sc_write_os_bank_indicator(0xff);
+    }
+    else if (request_os_bank_indicator == 0x2)
+    {
+        puts("Switching to ros1...\n");
+        sc_write_os_bank_indicator(0x00);
+    }
+
+    sc_write_request_os_bank_indicator(0xff);
+
+    //
+
     uint8_t real_os_bank_indicator = sc_read_os_bank_indicator();
     
     puts("real_os_bank_indicator = ");

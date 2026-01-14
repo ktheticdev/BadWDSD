@@ -384,10 +384,10 @@ extern void DebugUart_Puts(const char* buf);
 
 //
 
-// useless pin for hooking tristate (for hw flasher) pin to it for convenience
+// kafuu's personal pin for hooking sb tristate (hw flasher) pin to it for convenience
 
-//#if !PICO_IS_ZERO
-//static const uint32_t TRISTATE_PIN_ID = 21;
-//#endif
+#if !PICO_IS_ZERO
+static const uint32_t TRISTATE_PIN_ID = 21;
+#endif
 
 //

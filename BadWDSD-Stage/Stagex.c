@@ -1,7 +1,7 @@
 #define SC_PUTS_BUFFER_ENABLED 1
 
-#define LOGGING_ENABLED 1
-#define SC_LV1_LOGGING_ENABLED 1
+//#define LOGGING_ENABLED 1
+//#define SC_LV1_LOGGING_ENABLED 1
 
 //#define STAGE5_LOG_ENABLED 1
 
@@ -1148,6 +1148,13 @@ FUNC_DEF uint8_t sc_read_os_bank_indicator()
     return sc_read_eeprom8(0x2, 0x24);
 }
 
+FUNC_DEF void sc_write_os_bank_indicator(uint8_t val)
+{
+    // block id (0x48C00)
+    // offset (0x48C24)
+    sc_write_eeprom8(0x2, 0x24, val);
+}
+
 FUNC_DEF uint8_t sc_read_qcfw_lite_flag()
 {
     // block id (0x3000)
@@ -1175,6 +1182,20 @@ FUNC_DEF void sc_write_shadow_os_bank_indicator(uint8_t val)
     // block id (0x3000)
     // offset (0x3001)
     sc_write_eeprom8(0x20, 0x1, val);
+}
+
+FUNC_DEF uint8_t sc_read_request_os_bank_indicator()
+{
+    // block id (0x3000)
+    // offset (0x3002)
+    return sc_read_eeprom8(0x20, 0x2);
+}
+
+FUNC_DEF void sc_write_request_os_bank_indicator(uint8_t val)
+{
+    // block id (0x3000)
+    // offset (0x3002)
+    sc_write_eeprom8(0x20, 0x2, val);
 }
 
 FUNC_DEF void real_puts(const char *str)
