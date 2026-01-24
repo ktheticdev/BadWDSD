@@ -1,9 +1,13 @@
 //
 
+// RP2040-Zero
 //#define PICO_IS_ZERO 1
 
-#define SC_IS_SW 1
-#define XDR_IS_X32 1
+//#define SC_IS_SW 1
+//#define XDR_IS_X32 1
+
+// generated at build
+#include "build/Config.h"
 
 //
 
@@ -39,9 +43,12 @@ static const uint32_t HOLD_PIN_ID = 2;
 extern void Hold_Init();
 
 #if PICO_IS_ZERO
-static const uint32_t LED_PIN_ID = 11;
+#define LED_IS_WS2812 1
+#define LED_WS2812_PIO pio0
+static const uint32_t LED_PIN_ID = 16;
+static const uint8_t LED_RGB[3] = {255, 255, 0};
 #else
-static const uint32_t LED_PIN_ID = PICO_DEFAULT_LED_PIN;
+static const uint32_t LED_PIN_ID = PICO_DEFAULT_LED_PIN; // original pico
 #endif
 
 static const uint32_t LED_STATUS_OFF = 0;

@@ -2,6 +2,7 @@
 
 rm -rf BadWDSD/BadWDSD/build
 rm -rf BadWDSD/BadWDSD/.vscode
+rm -rf BadWDSD/out
 
 rm -rf BadWDSD-Stage/.vscode
 
