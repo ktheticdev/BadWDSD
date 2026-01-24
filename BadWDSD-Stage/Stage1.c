@@ -85,12 +85,6 @@ FUNC_DEF void Stage1()
 
     //
 
-    // block id (0x3000)
-    // offset (0x3001)
-    //sc_write_eeprom8(0x20, 0x1, 0x69);
-
-    //
-
     memset((void*)0, 0, (16 * 1024 * 1024));
 
     //
