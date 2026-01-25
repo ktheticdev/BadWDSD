@@ -20,13 +20,18 @@ FUNC_DEF void Stage6_IsoLoadRequest(uint64_t spu_id)
 
     //
 
+    if (ctx->stage6_spu_id == 0xff)
+        ctx->stage6_spu_id = (uint8_t)spu_id;
+
+    //
+
     uint64_t myappldrElfAddress = ctx->cached_myappldrElfAddress;
     uint64_t mylv2ldrElfAddress = ctx->cached_mylv2ldrElfAddress;
 
     uint8_t ok = 0;
     uint64_t myldrElfAddress = 0;
 
-    //if (spu_id == 4)
+    if (spu_id == ctx->stage6_spu_id)
     {
         if (ctx->stage6_isAppldr && (myappldrElfAddress != 0))
         {
@@ -133,7 +138,7 @@ FUNC_DEF uint32_t Stage6_GetSpuStatus(uint64_t spu_id)
 
     uint32_t status = SPU_PS_Read32(spu_id, 0x04024);
 
-    if (/*(spu_id == 4) &&*/ ((status & SPU_STATUS_ISOLATED_MASK) == 0) && (SPU_LS_Read64(spu_id, 0x39100) == 0x123456789))
+    if (((status & SPU_STATUS_ISOLATED_MASK) == 0) && (SPU_LS_Read64(spu_id, 0x39100) == 0x123456789))
         status |= SPU_STATUS_ISOLATED_MASK;
 
 #if 0
@@ -179,7 +184,6 @@ FUNC_DEF void Stage6_RequestExitIsolation(uint64_t spu_id)
 {
     //lv1_puts("Stage6_RequestExitIsolation()\n");
 
-    //if (spu_id == 4)
     {
         uint32_t status = SPU_PS_Read32(spu_id, 0x04024);
 
@@ -205,9 +209,25 @@ FUNC_DEF void Stage6_UpdateSPUStatusAndTransitionNotifierInShadowRegArea(uint64_
 
     uint32_t status = *((uint32_t*)spu_status_addr);
 
-    if (spu_status_addr == SPU_CalcMMIOAddress_PS(4, 0x4024))
+    uint8_t found_spu_id = 0;
+    uint64_t spu_id;
+
+    for (uint64_t i = 0; i < 8; ++i)
     {
-        if (((status & SPU_STATUS_ISOLATED_MASK) == 0) && (SPU_LS_Read64(4, 0x39100) == 0x123456789))
+        if (spu_status_addr == SPU_CalcMMIOAddress_PS(i, 0x4024))
+        {
+            found_spu_id = 1;
+            spu_id = i;
+
+            break;
+        }
+    }
+
+    if (!found_spu_id)
+        dead_beep();
+
+    {
+        if (((status & SPU_STATUS_ISOLATED_MASK) == 0) && (SPU_LS_Read64(spu_id, 0x39100) == 0x123456789))
         {
             //lv1_puts("yyy\n");
             status |= SPU_STATUS_ISOLATED_MASK;

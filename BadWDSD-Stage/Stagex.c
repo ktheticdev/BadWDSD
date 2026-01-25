@@ -144,6 +144,8 @@ struct Stagex_Context_s
 
     uint8_t stage6_isAppldr;
     uint8_t stage6_isLv2ldr;
+
+    uint8_t stage6_spu_id; // 0xff = unknown
 };
 
 FUNC_DEF struct Stagex_Context_s* GetStagexContext()
