@@ -1,6 +1,6 @@
 # BadWDSD
 
-This is a hardware modchip for Sony PlayStation 3. By using Raspberry Pi Pico (RP2040), It is possible for non-CFW compatible models to boot qCFW.
+This is a hardware modchip for **Sony PlayStation 3**. By using **Raspberry Pi Pico (RP2040)**, It is possible for non-CFW compatible models to boot **qCFW**.
 
 # Supported models
 
