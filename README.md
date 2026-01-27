@@ -38,7 +38,7 @@ To recover, use **BANKSEL** pin on the modchip to go back to OFW.
 
 # Installation (Software)
 
-**FOR FIRST INSTALLATION, BACKUP FLASH FIRST!!!. IF SOMETHINGS GOES TOO WRONG AND YOU DONT HAVE BACKUP, YOUR CONSOLE MAY BE PERMANENTLY BRICKED**
+**FOR FIRST INSTALLATION, BACKUP FLASH FIRST!!!. IF SOMETHING GOES TOO WRONG AND YOU DON'T HAVE BACKUP, YOUR CONSOLE MAY BE PERMANENTLY BRICKED**
 
 1. Prepare the USB drive by **DELETING old qcfw folder if existed, DO NOT OVERWRITE!!**
 then download [qCFW](https://github.com/aomsin2526/BadWDSD/releases) and extract it into your drive like this:
