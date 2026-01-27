@@ -69,6 +69,8 @@ Currently, **Raspberry Pi Pico (RP2040)** and **RP2040-Zero** are supported.
 
 **Only install modchip after Stagex is installed to console flash from above section. Otherwise it won't boot, if you already installed the modchip, You can use HOLD pin to temporary disable the modchip without unsoldering it.**
 
+**Since I don't have 2500 and 3000 model to test, it must be done by other people. If you know the solder location please tell me. Thanks.**
+
 <details>
   <summary> <b>Pico</b> </summary>
 <p>
