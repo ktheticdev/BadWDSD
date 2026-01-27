@@ -46,7 +46,7 @@ extern void Hold_Init();
 #define LED_IS_WS2812 1
 #define LED_WS2812_PIO pio0
 static const uint32_t LED_PIN_ID = 16;
-static const uint8_t LED_RGB[3] = {255, 255, 0};
+static const uint8_t LED_RGB[3] = {0, 0, 30};
 #else
 static const uint32_t LED_PIN_ID = PICO_DEFAULT_LED_PIN; // original pico
 #endif
