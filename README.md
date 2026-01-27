@@ -45,7 +45,7 @@ then download [qCFW](https://github.com/aomsin2526/BadWDSD/releases) and extract
 
 2. Install HEN version that include qCFW installer
 3. Plug your USB drive into **RIGHTMOST** USB port of your ps3
-4. In XMB, Enable HEN then use **Network -> Hybrid Firmware Tools -> QCFW Installer -> Install Stagex** option. It must show **Success**
+4. On XMB, Enable HEN then use **Network -> Hybrid Firmware Tools -> QCFW Installer -> Install Stagex** option. It must show **Success**
 5. If not already, Install the modchip by following **Installation (Hardware)** section
 6. After modchip installed and power plugged in, wait until LED of modchip becomes solid. If it doesn't solid after a while, check **SC_RX/SC_TX** wire
 7. Turn on the console, modchip LED should flash briefly with triple beep right after. This means exploit is successful. If your console keep turning off and on, check **CMD/CLK** wire and **Stagex.bin**
@@ -102,7 +102,7 @@ It is possible to power the modchip using external power as long as it is active
 
 # Pin description
 
-**Signal pin:**
+**SIGNAL PIN:**
 
 **CLK** - XDR CLK signal
 
@@ -113,7 +113,7 @@ It is possible to power the modchip using external power as long as it is active
 **DEBUG** - Optional modchip UART signal, for debugging and accessing syscon **(baud 576000, NOT 57600!)**
 
 
-**Config pin:**
+**CONFIG PIN:**
 
 Short to ground to activate
 
@@ -148,9 +148,21 @@ Always use this method when possible. Simply reinstall firmware as normal. No ex
 
 After booting the console with modchip, It is possible to downgrade the firmware up to 4.80. It can't be done in XMB. You must use safe mode.
 
+# OtherOS
+
+It is different from CFW. Simply follow these steps.
+
+1. Download [dtbImage.ps3.zfself](https://github.com/aomsin2526/ps3-petitboot-kexec-patched/releases) and put it into root of your USB drive
+2. Plug your USB drive into **RIGHTMOST** USB port of your ps3
+3. On XMB, use **Network -> Custom Firmware Tools -> OtherOS Tools -> Install OtherOS (qCFW) option**. It should show **Success**
+4. Use **Boot OtherOS (qCFW)** option. It should enter petitboot right away
+
 # Accessing Syscon
 
 You can't access syscon the old ways anymore. It must be done through modchip. Simply connect **DEBUG** pin of modchip into your UART adapter.
 
 <img width="1206" height="644" alt="Termite_s1m3OjonO8" src="https://github.com/user-attachments/assets/b8ba3786-d2ab-488f-b6c2-85032f0615de" />
 
+# NoBT
+
+TODO. It requires LITE pin and hardware flasher for first installation if you are already on update loop.
