@@ -67,7 +67,7 @@ If thing goes too bad to the point of not being able to enter safe mode at all, 
 
 Currently, **Raspberry Pi Pico (RP2040)** and **RP2040-Zero** is supported.
 
-**Only install modchip after Stagex is installed to console flash from above section. Otherwise it won't boot, if you already installed the modchip. You can use HOLD pin to temporary disable the modchip without unsoldering it.**
+**Only install modchip after Stagex is installed to console flash from above section. Otherwise it won't boot, if you already installed the modchip, You can use HOLD pin to temporary disable the modchip without unsoldering it.**
 
 <details>
   <summary> <b>Pico</b> </summary>
