@@ -185,3 +185,23 @@ You can't access syscon the old ways anymore. It must be done through modchip. S
 # NoBT
 
 TODO. It requires LITE pin and hardware flasher for first installation if you are already on update loop.
+
+# eMMC Support?
+
+In very short summary, What modchip is doing is writing these code into ram at boot:
+
+```
+stage_entry:
+    // Jump to 0x2401F031000, aka 0x31000 on NOR flash
+
+    bl 4
+    mflr %r3
+    addi %r3, %r3, -4
+    ld %r4, 24(%r3)
+    mtctr %r4
+    bctr
+
+    .quad 0x2401F031000
+```
+
+Do we have something like 0x2401F031000 on eMMC? If answer is yes, then eMMC can be supported (with more porting work).
