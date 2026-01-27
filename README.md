@@ -121,12 +121,28 @@ Short to ground to activate
 
 **LITE** - TODO
 
-**BANKSEL** - Go back to OFW forcefully. It is equal to syscon command **w 1224 00**. Only use when absolutely needed.
+**BANKSEL** - Go back to OFW forcefully. It is equal to syscon command **w 1224 00**. Only use when absolutely needed. You can't turn on the console while this pin is shorted
 
 # Update qCFW
 
 You can't update qCFW while on qCFW. you must go back to OFW first.
+
 Simply reinstall firmware normally, then use **Install qCFW** with updated files on USB again. No need to do anything else
+
+# Go back to OFW using PUP method (Recommended)
+
+Always use this method when possible. Simply reinstall firmware as normal. No extra steps required.
+
+# Go back to OFW using BANKSEL pin
+
+**Avoid this unless absolutely needed.**
+
+1. Unplug your console
+2. Short BANKSEL pin to ground
+3. Plug in your console, wait until modchip LED flashes very fast. Then it is successful. You can't turn on the console while this pin is shorted
+4. Unplug your console and unshort the pin. **If necessary** remove or use HOLD pin to disable the modchip
+5. Plug in your console again and turn it on, you will likely to get black screen, this is expected since dev_flash is still qCFW but you're on OFW now
+6. Enter safe mode and reinstall firmware normally to get full recovery
 
 # Downgrading
 
