@@ -38,6 +38,8 @@ To recover, use **BANKSEL** pin on the modchip to go back to OFW.
 
 # Installation (Software)
 
+**FOR FIRST INSTALLATION, BACKUP FLASH FIRST!!!. IF SOMETHINGS GOES TOO WRONG AND YOU DONT HAVE BACKUP, YOUR CONSOLE MAY BE PERMANENTLY BRICKED**
+
 1. Prepare the USB drive by **DELETING old qcfw folder if existed, DO NOT OVERWRITE!!**
 then download [qCFW](https://github.com/aomsin2526/BadWDSD/releases) and extract it into your drive like this:
 
@@ -82,6 +84,13 @@ Currently, **Raspberry Pi Pico (RP2040)** and **RP2040-Zero** is supported.
 </details>
 
 <details>
+  <summary> <b>3000</b> </summary>
+<p>
+<img src="https://github.com/user-attachments/assets/6787886e-58a6-4fe9-877c-7ce4efbf8af7" />
+</p>
+</details>
+
+<details>
   <summary> <b>4x00</b> </summary>
 <p>
 <img src="https://github.com/user-attachments/assets/9910be97-5c85-4b48-9edb-c2d7a4ecabd9" />
@@ -117,7 +126,7 @@ It is possible to power the modchip using external power as long as it is active
 
 Short to ground to activate
 
-**HOLD** - Disable the modchip without needing to remove power to unsolder
+**HOLD** - Disable the modchip without needing to remove power or unsolder
 
 **LITE** - TODO
 
