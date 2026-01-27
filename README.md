@@ -138,6 +138,8 @@ You can't update qCFW while on qCFW. you must go back to OFW first.
 
 Simply reinstall firmware normally, then use **Install qCFW** with updated files on USB again. No need to do anything else
 
+**When updating files on USB, delete whole qcfw folder first. Don't overwrite or it may causes problem.**
+
 # Go back to OFW using PUP method (Recommended)
 
 Always use this method when possible. Simply reinstall firmware as normal. No extra steps required.
