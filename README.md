@@ -40,7 +40,58 @@ To recover, use **BANKSEL** pin on the modchip to go back to OFW.
 
 Currently, **Raspberry Pi Pico (RP2040)** and **RP2040-Zero** is supported.
 
+Only install modchip after Stagex is installed to flash from above section. Otherwise it won't boot, if you already installed the modchip. You can use HOLD pin to temporary disable the modchip without unsoldering it.
+
+<details>
+  <summary> <b>Pico</b> </summary>
+<p>
 <img width="1100" height="800" alt="raspberry_pi_pico_pinout - Copy" src="https://github.com/user-attachments/assets/e1393136-d60f-4822-a818-f27cf2b1456b" />
+</p>
+</details>
 
-![900px-RP2040-Zero-details-7](https://github.com/user-attachments/assets/8304c258-386b-4f2c-84ee-5fd5f6f90217)
+<details>
+  <summary> <b>RP2040-Zero</b> </summary>
+<p>
+<img src="https://github.com/user-attachments/assets/8304c258-386b-4f2c-84ee-5fd5f6f90217" />
+</p>
+</details>
 
+<details>
+  <summary> <b>4x00</b> </summary>
+<p>
+<img src="https://github.com/user-attachments/assets/9910be97-5c85-4b48-9edb-c2d7a4ecabd9" />
+
+<img width="481" height="384" alt="firefox_hjbEN8ZhUV" src="https://github.com/user-attachments/assets/fb19f60f-76ee-4e76-a164-83b988cdf286" />
+
+<img width="501" height="400" alt="firefox_ybeL3zep1j" src="https://github.com/user-attachments/assets/71580063-2a03-4b6e-8433-e5f99e925e89" />
+</p>
+</details>
+
+Exclude power and ground, you only need to solder 4 wires that marked red (CMD, CLK, SC_RX, SC_TX). Other pin is optional.
+
+It is possible to power the modchip using external power as long as it is active during standby
+
+# Pin description
+
+**Signal pin:**
+
+**CLK** - XDR CLK signal
+
+**CMD** - XDR CMD signal
+
+**SC_TX/SC_RX** - Syscon UART signal
+
+**DEBUG** - Optional modchip UART signal, for debugging and accessing syscon **(baud 576000, NOT 57600!)**
+
+
+**Config pin:**
+
+Short to ground to activate
+
+**HOLD** - Disable the modchip without needing to remove power to unsolder
+
+**LITE** - TODO
+
+**BANKSEL** - Go back to OFW forcefully. It is equal to syscon command **w 1224 00**. Only use when absolutely needed.
+
+    
