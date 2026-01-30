@@ -167,7 +167,7 @@ If you want to uninstall the modchip, you can do so after this
 
 # Recover from bad Stagex.bin or CoreOS.bin flash
 
-No worries, your console isn't really bricked. Simply follow **Go back to OFW using BANKSEL pin** section above. But this time disable modchip before boot as well.
+No worries, your console isn't really bricked. **First, disable the modchip then try to boot the console if it boots then all is good.** If it shut itself off, Simply follow **Go back to OFW using BANKSEL pin** section above. But this time disable modchip before boot as well.
 
 # Downgrading
 
