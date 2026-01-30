@@ -67,7 +67,7 @@ This can be done by reinstalling OFW/HFW firmware normally. Then after this you 
 
 If thing goes too bad to the point of not being able to enter safe mode at all, you can use **BANKSEL** pin instead.
 
-If you flashed bad Stagex.bin or CoreOS.bin, see **Recover from bad Stagex.bin or CoreOS.bin flash** section.
+If you flashed bad **Stagex.bin** or **CoreOS.bin**, see **Recover from bad Stagex.bin or CoreOS.bin flash** section.
 
 # Installation (Hardware)
 
@@ -161,7 +161,7 @@ If you want to uninstall the modchip, you can do so after this
 1. Unplug your console
 2. Short **BANKSEL** pin to ground
 3. Plug in your console, wait until modchip LED flashes very fast. Then it is successful. You can't turn on the console while this pin is shorted
-4. Unplug your console and unshort the pin. **If necessary** remove or use HOLD pin to disable the modchip
+4. Unplug your console and unshort the pin. **If necessary** remove or use **HOLD** pin to disable the modchip
 5. Plug in your console again and turn it on, you will likely to get black screen. This is expected since dev_flash is still qCFW but you're on OFW now
 6. Enter safe mode and reinstall firmware normally to get full recovery
 
